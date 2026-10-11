@@ -1,1 +1,386 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>MRP & Production | StockVelocity</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+<div class="app-layout">
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <h1>StockVelocity</h1>
+            <p>by SCaaS Global</p>
+        </div>
+
+
+        <nav class="sidebar-nav">
+
+            <a class="nav-link" href="index.html">
+                Dashboard
+            </a>
+
+            <p class="nav-section-title">
+                Planning
+            </p>
+
+            <a
+                class="nav-link"
+                href="demand-planning.html"
+            >
+                Demand Planning
+            </a>
+
+            <a
+                class="nav-link"
+                href="inventory-planning.html"
+            >
+                Inventory Planning
+            </a>
+
+            <a
+                class="nav-link active"
+                href="mrp-production.html"
+            >
+                MRP & Production
+            </a>
+
+            <a
+                class="nav-link"
+                href="landed-cost.html"
+            >
+                Landed Cost
+            </a>
+
+        </nav>
+
+    </aside>
+
+
+    <main class="main-content">
+
+        <header class="topbar">
+
+            <div>
+
+                <p class="eyebrow">
+                    Manufacturing
+                </p>
+
+                <h2>
+                    MRP & Production
+                </h2>
+
+                <p class="page-description">
+                    Convert finished goods demand into material
+                    and production requirements.
+                </p>
+
+            </div>
+
+
+            <div class="topbar-actions">
+
+                <button class="btn btn-secondary">
+                    View BOM
+                </button>
+
+                <button class="btn btn-primary">
+                    Push to Production
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <div class="kpi-grid">
+
+            <article class="kpi-card">
+
+                <span>
+                    Planned Production
+                </span>
+
+                <strong>
+                    905
+                </strong>
+
+                <small>
+                    Finished goods units
+                </small>
+
+            </article>
+
+
+            <article class="kpi-card">
+
+                <span>
+                    Components Required
+                </span>
+
+                <strong>
+                    1,435
+                </strong>
+
+                <small>
+                    Gross requirements
+                </small>
+
+            </article>
+
+
+            <article class="kpi-card">
+
+                <span>
+                    Material Shortages
+                </span>
+
+                <strong>
+                    2
+                </strong>
+
+                <small>
+                    Components to purchase
+                </small>
+
+            </article>
+
+
+            <article class="kpi-card">
+
+                <span>
+                    Open Production Orders
+                </span>
+
+                <strong>
+                    3
+                </strong>
+
+                <small>
+                    Current production orders
+                </small>
+
+            </article>
+
+        </div>
+
+
+        <!-- PRODUCTION REQUIREMENTS -->
+
+        <section class="panel">
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h3>
+                        Production Requirements
+                    </h3>
+
+                    <p>
+                        Finished goods requiring production.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                    <tr>
+                        <th>Finished Good</th>
+                        <th>Requirement</th>
+                        <th>Available</th>
+                        <th>Production Required</th>
+                        <th>Status</th>
+                    </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                    <tr>
+                        <td>FG-100</td>
+                        <td>460</td>
+                        <td>185</td>
+                        <td>275</td>
+
+                        <td>
+                            <span class="status warning">
+                                Ready for Review
+                            </span>
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <td>FG-102</td>
+                        <td>850</td>
+                        <td>240</td>
+                        <td>610</td>
+
+                        <td>
+                            <span class="status danger">
+                                Materials Required
+                            </span>
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <td>FG-104</td>
+                        <td>90</td>
+                        <td>70</td>
+                        <td>20</td>
+
+                        <td>
+                            <span class="status warning">
+                                Ready for Review
+                            </span>
+                        </td>
+                    </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <br>
+
+
+        <!-- COMPONENT REQUIREMENTS -->
+
+        <section class="panel">
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h3>
+                        Component Requirements
+                    </h3>
+
+                    <p>
+                        BOM explosion for FG-100 production.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                    <tr>
+                        <th>Component</th>
+                        <th>Description</th>
+                        <th>Qty / FG</th>
+                        <th>Gross Requirement</th>
+                        <th>Available</th>
+                        <th>Incoming</th>
+                        <th>Net Requirement</th>
+                        <th>Status</th>
+                    </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                    <tr>
+                        <td>COMP-A</td>
+                        <td>Main Housing</td>
+                        <td>1</td>
+                        <td>275</td>
+                        <td>150</td>
+                        <td>100</td>
+                        <td>25</td>
+
+                        <td>
+                            <span class="status danger">
+                                Purchase
+                            </span>
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <td>COMP-B</td>
+                        <td>Internal Insert</td>
+                        <td>2</td>
+                        <td>550</td>
+                        <td>400</td>
+                        <td>200</td>
+                        <td>0</td>
+
+                        <td>
+                            <span class="status healthy">
+                                Covered
+                            </span>
+                        </td>
+                    </tr>
+
+
+                    <tr>
+                        <td>COMP-C</td>
+                        <td>Packaging Set</td>
+                        <td>1</td>
+                        <td>275</td>
+                        <td>300</td>
+                        <td>0</td>
+                        <td>0</td>
+
+                        <td>
+                            <span class="status healthy">
+                                Covered
+                            </span>
+                        </td>
+                    </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
