@@ -1,1 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="StockVelocity Inventory Health - identify stockouts, excess inventory, slow movers and inventory coverage risks."
+    >
+
+    <title>Inventory Health | StockVelocity</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <h1>StockVelocity</h1>
+            <p>by SCaaS Global</p>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="StockVelocity Navigation">
+
+            <a class="nav-link" href="index.html">Dashboard</a>
+
+            <p class="nav-section-title">Master Data</p>
+
+            <a class="nav-link" href="product-master.html">Product Master</a>
+            <a class="nav-link" href="vendor-master.html">Vendor Master</a>
+            <a class="nav-link" href="locations.html">Locations</a>
+            <a class="nav-link" href="sales-channels.html">Sales Channels</a>
+
+            <p class="nav-section-title">Planning</p>
+
+            <a class="nav-link" href="demand-planning.html">Demand Planning</a>
+            <a class="nav-link" href="inventory-planning.html">Inventory Planning</a>
+            <a class="nav-link" href="mrp-production.html">MRP & Production</a>
+            <a class="nav-link" href="landed-cost.html">Landed Cost Scenarios</a>
+
+            <p class="nav-section-title">Execution</p>
+
+            <a class="nav-link" href="sales-orders.html">Sales Orders</a>
+            <a class="nav-link" href="purchasing.html">Purchasing</a>
+            <a class="nav-link" href="purchase-orders.html">Purchase Orders</a>
+            <a class="nav-link" href="inbound-shipments.html">Inbound Shipments</a>
+            <a class="nav-link" href="receiving.html">Receiving</a>
+            <a class="nav-link" href="returns.html">RMA & Returns</a>
+
+            <p class="nav-section-title">Performance</p>
+
+            <a class="nav-link active" href="inventory-health.html">Inventory Health</a>
+            <a class="nav-link" href="cash-requirements.html">Cash Requirements</a>
+            <a class="nav-link" href="revenue-risk.html">Revenue at Risk</a>
+            <a class="nav-link" href="supplier-performance.html">Supplier Performance</a>
+            <a class="nav-link" href="reports.html">Reports</a>
+
+            <p class="nav-section-title">System</p>
+
+            <a class="nav-link" href="integrations.html">Integrations</a>
+            <a class="nav-link" href="settings.html">Settings</a>
+
+        </nav>
+
+    </aside>
+
+
+    <main class="main-content">
+
+        <header class="topbar">
+
+            <div>
+                <p class="eyebrow">Performance</p>
+                <h2>Inventory Health</h2>
+
+                <p class="page-description">
+                    Identify stockouts, excess inventory, slow movers and inventory coverage risks.
+                </p>
+            </div>
+
+            <div class="topbar-actions">
+
+                <button class="btn btn-secondary">
+                    Export Analysis
+                </button>
+
+                <a
+                    href="inventory-planning.html"
+                    class="btn btn-primary"
+                >
+                    Open Inventory Planning
+                </a>
+
+            </div>
+
+        </header>
+
+
+        <section class="kpi-grid">
+
+            <article class="kpi-card">
+                <span>Healthy Inventory</span>
+                <strong>68%</strong>
+                <small>SKUs within target</small>
+            </article>
+
+            <article class="kpi-card">
+                <span>Stockout Risk</span>
+                <strong>12</strong>
+                <small>SKUs requiring action</small>
+            </article>
+
+            <article class="kpi-card">
+                <span>Excess Inventory</span>
+                <strong>$42,600</strong>
+                <small>Cash tied up</small>
+            </article>
+
+            <article class="kpi-card">
+                <span>Slow Movers</span>
+                <strong>18</strong>
+                <small>Low velocity SKUs</small>
+            </article>
+
+        </section>
+
+
+        <section class="panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h3>Inventory Health by SKU</h3>
+
+                    <p>
+                        Review inventory position against demand and target coverage.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Product</th>
+                            <th>Available</th>
+                            <th>Monthly Demand</th>
+                            <th>Months Cover</th>
+                            <th>Target Cover</th>
+                            <th>Inventory Value</th>
+                            <th>Health</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+                            <td>FG-100</td>
+                            <td>Core Product A</td>
+                            <td>185</td>
+                            <td>250</td>
+                            <td>0.7</td>
+                            <td>2.0</td>
+                            <td>$1,572</td>
+                            <td>
+                                <span class="status danger">
+                                    Stockout Risk
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>FG-101</td>
+                            <td>Core Product B</td>
+                            <td>420</td>
+                            <td>230</td>
+                            <td>1.8</td>
+                            <td>2.0</td>
+                            <td>$4,284</td>
+                            <td>
+                                <span class="status healthy">
+                                    Healthy
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>FG-102</td>
+                            <td>Core Product C</td>
+                            <td>240</td>
+                            <td>250</td>
+                            <td>1.0</td>
+                            <td>2.5</td>
+                            <td>$2,976</td>
+                            <td>
+                                <span class="status danger">
+                                    Stockout Risk
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>FG-105</td>
+                            <td>Legacy Product F</td>
+                            <td>620</td>
+                            <td>80</td>
+                            <td>7.8</td>
+                            <td>2.0</td>
+                            <td>$9,920</td>
+                            <td>
+                                <span class="status warning">
+                                    Excess
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>FG-108</td>
+                            <td>Seasonal Product H</td>
+                            <td>390</td>
+                            <td>40</td>
+                            <td>9.8</td>
+                            <td>3.0</td>
+                            <td>$7,215</td>
+                            <td>
+                                <span class="status warning">
+                                    Slow Moving
+                                </span>
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
