@@ -1,6 +1,6 @@
-/* ================================
+/* =====================================================
    GLOBAL
-================================ */
+===================================================== */
 
 * {
     box-sizing: border-box;
@@ -8,175 +8,276 @@
     padding: 0;
 }
 
+html {
+    scroll-behavior: smooth;
+}
+
 body {
     font-family: Arial, Helvetica, sans-serif;
+
     background: #f5f6f8;
+
     color: #172033;
+
     line-height: 1.5;
 }
 
-button {
+a {
+    color: inherit;
+}
+
+button,
+input,
+select,
+textarea {
     font: inherit;
 }
 
 
-/* ================================
+/* =====================================================
    APPLICATION LAYOUT
-================================ */
+===================================================== */
 
 .app-layout {
     min-height: 100vh;
-    display: flex;
 }
 
 
-/* ================================
+/* =====================================================
    SIDEBAR
-================================ */
+===================================================== */
 
 .sidebar {
-    width: 260px;
-    min-height: 100vh;
+    position: fixed;
 
-    background: #07101f;
-    color: #ffffff;
+    top: 0;
+    left: 0;
+    bottom: 0;
+
+    width: 260px;
 
     padding: 28px 20px;
 
-    position: fixed;
+    background: #07101f;
 
-    left: 0;
-    top: 0;
-    bottom: 0;
+    color: #ffffff;
 
     overflow-y: auto;
+
+    z-index: 100;
 }
 
+
+/* SCROLLBAR */
+
+.sidebar::-webkit-scrollbar {
+    width: 7px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: #344054;
+
+    border-radius: 10px;
+}
+
+
+/* BRAND */
+
 .brand {
-    padding: 0 10px 30px;
-    border-bottom: 1px solid #253044;
     margin-bottom: 25px;
+
+    padding: 0 10px 28px;
+
+    border-bottom: 1px solid #253044;
 }
 
 .brand h1 {
-    font-size: 24px;
     color: #ffffff;
+
+    font-size: 24px;
+    font-weight: 700;
 }
 
 .brand p {
     margin-top: 4px;
-    font-size: 13px;
+
     color: #d5af49;
+
+    font-size: 13px;
 }
 
 
-/* ================================
+/* =====================================================
    NAVIGATION
-================================ */
+===================================================== */
 
 .sidebar-nav {
     display: flex;
+
     flex-direction: column;
+
     gap: 6px;
 }
 
-.nav-link {
+.nav-section-title {
+    margin: 24px 14px 8px;
+
+    color: #73819a;
+
+    font-size: 10px;
+    font-weight: 700;
+
+    letter-spacing: 1.4px;
+
+    text-transform: uppercase;
+}
+
+.nav-link,
+.nav-link:link,
+.nav-link:visited {
+    display: block;
+
     width: 100%;
-
-    border: none;
-
-    background: transparent;
-    color: #adb6c7;
 
     padding: 11px 14px;
 
     border-radius: 7px;
 
-    text-align: left;
+    background: transparent;
+
+    color: #adb6c7;
+
+    text-decoration: none;
 
     cursor: pointer;
 
-    transition: 0.2s;
+    transition:
+        background 0.2s ease,
+        color 0.2s ease;
 }
 
 .nav-link:hover {
     background: #151f30;
+
     color: #ffffff;
+
+    text-decoration: none;
 }
 
 .nav-link.active {
     background: #d5af49;
+
     color: #07101f;
+
     font-weight: 700;
 }
 
 
-/* ================================
+/* =====================================================
    MAIN CONTENT
-================================ */
+===================================================== */
 
 .main-content {
-    margin-left: 260px;
-
     width: calc(100% - 260px);
+
+    min-height: 100vh;
+
+    margin-left: 260px;
 
     padding: 32px;
 }
 
 
-/* ================================
+/* =====================================================
    TOP BAR
-================================ */
+===================================================== */
 
 .topbar {
     display: flex;
+
     align-items: center;
     justify-content: space-between;
+
+    gap: 24px;
 
     margin-bottom: 30px;
 }
 
 .topbar h2 {
-    font-size: 28px;
+    color: #07101f;
+
+    font-size: 30px;
+    line-height: 1.2;
+}
+
+.page-description {
+    margin-top: 5px;
+
+    color: #667085;
+
+    font-size: 14px;
 }
 
 .eyebrow {
-    font-size: 12px;
-    font-weight: 700;
-
-    text-transform: uppercase;
-
-    letter-spacing: 1px;
+    margin-bottom: 5px;
 
     color: #967621;
 
-    margin-bottom: 4px;
+    font-size: 12px;
+    font-weight: 700;
+
+    letter-spacing: 1px;
+
+    text-transform: uppercase;
 }
 
 .topbar-actions {
     display: flex;
+
+    align-items: center;
+
     gap: 10px;
+
+    flex-shrink: 0;
 }
 
 
-/* ================================
+/* =====================================================
    BUTTONS
-================================ */
+===================================================== */
 
-.btn {
-    border: none;
+.btn,
+.btn:link,
+.btn:visited {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
 
     padding: 10px 16px;
 
+    border: none;
     border-radius: 7px;
 
     cursor: pointer;
 
     font-weight: 600;
+
+    text-decoration: none;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease;
 }
 
 .btn-primary {
     background: #c9a227;
+
     color: #07101f;
 }
 
@@ -192,74 +293,65 @@ button {
     color: #172033;
 }
 
-.text-button {
+.btn-secondary:hover {
+    border-color: #b8bfcb;
+
+    background: #f8f9fb;
+}
+
+.text-button,
+.text-button:link,
+.text-button:visited {
     border: none;
+
     background: none;
 
     color: #8b6b13;
 
     font-weight: 600;
 
+    text-decoration: none;
+
     cursor: pointer;
 }
 
-
-/* ================================
-   PAGES
-================================ */
-
-.page {
-    display: none;
-}
-
-.page.active {
-    display: block;
-}
-
-.page-heading {
-    display: flex;
-
-    justify-content: space-between;
-    align-items: center;
-
-    margin-bottom: 24px;
-}
-
-.page-heading h3 {
-    font-size: 22px;
+.text-button:hover {
+    text-decoration: underline;
 }
 
 
-/* ================================
+/* =====================================================
    WELCOME CARD
-================================ */
+===================================================== */
 
 .welcome-card {
-    background: #ffffff;
+    margin-bottom: 22px;
 
     padding: 28px;
 
-    border-radius: 12px;
+    background: #ffffff;
 
     border: 1px solid #e5e7eb;
 
-    margin-bottom: 22px;
+    border-radius: 12px;
 }
 
 .welcome-card h3 {
-    font-size: 26px;
-
     margin-bottom: 8px;
+
+    color: #07101f;
+
+    font-size: 26px;
 }
 
-.welcome-card p {
+.welcome-card p:last-child {
     color: #667085;
 }
 
 
-/* ================================
+/* =====================================================
    KPI CARDS
-================================ */
+===================================================== */
 
 .kpi-grid {
     display: grid;
@@ -273,31 +365,33 @@ button {
 }
 
 .kpi-card {
+    padding: 22px;
+
     background: #ffffff;
 
     border: 1px solid #e4e7ec;
 
     border-radius: 10px;
-
-    padding: 22px;
 }
 
 .kpi-card span {
     display: block;
 
-    font-size: 14px;
+    margin-bottom: 8px;
 
     color: #667085;
 
-    margin-bottom: 8px;
+    font-size: 14px;
 }
 
 .kpi-card strong {
     display: block;
 
-    font-size: 27px;
-
     margin-bottom: 5px;
+
+    color: #07101f;
+
+    font-size: 28px;
 }
 
 .kpi-card small {
@@ -305,9 +399,9 @@ button {
 }
 
 
-/* ================================
+/* =====================================================
    PANELS
-================================ */
+===================================================== */
 
 .panel {
     background: #ffffff;
@@ -322,26 +416,40 @@ button {
 .panel-header {
     display: flex;
 
-    justify-content: space-between;
     align-items: center;
+    justify-content: space-between;
+
+    gap: 20px;
 
     padding: 22px;
 }
 
+.panel-header h3 {
+    color: #07101f;
+
+    font-size: 20px;
+}
+
 .panel-header p {
+    margin-top: 4px;
+
     color: #667085;
 
     font-size: 14px;
+}
 
-    margin-top: 4px;
+.dashboard-panel {
+    margin-top: 28px;
 }
 
 
-/* ================================
+/* =====================================================
    TABLES
-================================ */
+===================================================== */
 
 .table-container {
+    width: 100%;
+
     overflow-x: auto;
 }
 
@@ -353,11 +461,11 @@ table {
 
 th,
 td {
-    text-align: left;
-
     padding: 14px 20px;
 
     border-top: 1px solid #eaecf0;
+
+    text-align: left;
 }
 
 th {
@@ -366,18 +474,23 @@ th {
     color: #667085;
 
     font-size: 12px;
+    font-weight: 700;
 
     text-transform: uppercase;
+
+    white-space: nowrap;
 }
 
 td {
+    color: #172033;
+
     font-size: 14px;
 }
 
 
-/* ================================
+/* =====================================================
    STATUS
-================================ */
+===================================================== */
 
 .status {
     display: inline-block;
@@ -387,177 +500,32 @@ td {
     border-radius: 20px;
 
     font-size: 12px;
-
-    font-weight: 700;
-}
-
-.status.healthy {
-    background: #e8f7ef;
-    color: #18794e;
-}
-
-.status.warning {
-    background: #fff4d6;
-    color: #926b00;
-}
-
-.status.danger {
-    background: #feecec;
-    color: #b42318;
-}
-
-
-/* ================================
-   MOBILE
-================================ */
-
-@media (max-width: 1000px) {
-
-    .kpi-grid {
-        grid-template-columns:
-            repeat(2, 1fr);
-    }
-
-}
-
-
-@media (max-width: 750px) {
-
-    .sidebar {
-        width: 200px;
-    }
-
-    .main-content {
-        margin-left: 200px;
-
-        width: calc(100% - 200px);
-
-        padding: 20px;
-    }
-
-    .kpi-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .topbar {
-        align-items: flex-start;
-        gap: 15px;
-
-        flex-direction: column;
-    }
-
-}
-/* ================================
-   SALES CHANNELS
-================================ */
-
-.channel-grid {
-    display: grid;
-
-    grid-template-columns:
-        repeat(2, minmax(0, 1fr));
-
-    gap: 18px;
-}
-
-.channel-card {
-    background: #ffffff;
-
-    border: 1px solid #e4e7ec;
-
-    border-radius: 10px;
-
-    padding: 22px;
-
-    display: flex;
-
-    justify-content: space-between;
-    align-items: center;
-
-    gap: 20px;
-}
-
-.channel-card h4 {
-    font-size: 18px;
-
-    margin-bottom: 5px;
-}
-
-.channel-card p {
-    font-size: 14px;
-
-    color: #667085;
-}
-
-.connection-status {
-    display: inline-block;
-
-    padding: 6px 10px;
-
-    border-radius: 20px;
-
-    font-size: 12px;
-
     font-weight: 700;
 
     white-space: nowrap;
 }
 
-.connection-status.connected {
+.status.healthy {
     background: #e8f7ef;
+
     color: #18794e;
 }
 
-.connection-status.disconnected {
-    background: #f2f4f7;
-    color: #667085;
-}
-.nav-link {
-    display: block;
-    width: 100%;
+.status.warning {
+    background: #fff4d6;
 
-    padding: 11px 14px;
-
-    border: none;
-    border-radius: 7px;
-
-    background: transparent;
-
-    color: #adb6c7;
-
-    text-decoration: none;
-    text-align: left;
-
-    cursor: pointer;
-
-    transition: 0.2s;
+    color: #926b00;
 }
 
-.nav-link:hover {
-    background: #151f30;
-    color: #ffffff;
+.status.danger {
+    background: #feecec;
+
+    color: #b42318;
 }
 
-.nav-link.active {
-    background: #d5af49;
-    color: #07101f;
-    font-weight: 700;
-}
 
-.nav-section-title {
-    margin: 24px 14px 8px;
-
-    font-size: 10px;
-    font-weight: 700;
-
-    letter-spacing: 1.4px;
-
-    text-transform: uppercase;
-
-    color: #677386;
-}
 /* =====================================================
-   DASHBOARD PLANNING OVERVIEW
+   PLANNING OVERVIEW
 ===================================================== */
 
 .dashboard-section {
@@ -565,37 +533,26 @@ td {
     margin-bottom: 28px;
 }
 
-
-/* SECTION HEADING */
-
 .section-heading {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-end;
-
     margin-bottom: 18px;
 }
 
 .section-heading h3 {
-    margin: 0 0 5px;
-
-    font-size: 22px;
-    font-weight: 700;
+    margin-bottom: 5px;
 
     color: #07101f;
+
+    font-size: 22px;
 }
 
 .section-heading p {
-    margin: 0;
+    color: #667085;
 
     font-size: 14px;
-    color: #667085;
 }
 
 
-/* =====================================================
-   MODULE GRID
-===================================================== */
+/* MODULE GRID */
 
 .module-grid {
     display: grid;
@@ -607,12 +564,16 @@ td {
 }
 
 
-/* MODULE CARD */
+/* MODULE CARDS */
 
-.module-card {
+.module-card,
+.module-card:link,
+.module-card:visited {
     display: flex;
+
     flex-direction: column;
 
+    min-width: 0;
     min-height: 210px;
 
     padding: 22px;
@@ -620,9 +581,11 @@ td {
     background: #ffffff;
 
     border: 1px solid #e4e7ec;
+
     border-radius: 12px;
 
     color: #07101f;
+
     text-decoration: none;
 
     transition:
@@ -631,33 +594,33 @@ td {
         border-color 0.2s ease;
 }
 
-
 .module-card:hover {
     transform: translateY(-3px);
 
     border-color: #d5af49;
 
-    box-shadow:
-        0 8px 24px rgba(7, 16, 31, 0.08);
+    color: #07101f;
 
     text-decoration: none;
+
+    box-shadow:
+        0 8px 24px rgba(7, 16, 31, 0.08);
 }
 
-
-/* MODULE LABEL */
-
 .module-label {
-    display: inline-block;
+    display: inline-flex;
+
+    align-items: center;
 
     width: fit-content;
 
     margin-bottom: 14px;
 
-    padding: 5px 9px;
-
-    border-radius: 20px;
+    padding: 5px 10px;
 
     background: #f7f0d8;
+
+    border-radius: 20px;
 
     color: #8b6914;
 
@@ -669,32 +632,23 @@ td {
     text-transform: uppercase;
 }
 
-
-/* MODULE TITLE */
-
 .module-card h4 {
-    margin: 0 0 9px;
+    margin-bottom: 10px;
 
     color: #07101f;
 
     font-size: 18px;
-    font-weight: 700;
 }
 
-
-/* MODULE DESCRIPTION */
-
 .module-card p {
-    margin: 0 0 20px;
+    margin-bottom: 20px;
 
     color: #667085;
 
     font-size: 14px;
+
     line-height: 1.6;
 }
-
-
-/* MODULE CTA */
 
 .module-link {
     margin-top: auto;
@@ -705,55 +659,110 @@ td {
     font-weight: 700;
 }
 
-
 .module-card:hover .module-link {
     color: #70540f;
 }
 
 
 /* =====================================================
-   DASHBOARD PANELS
+   SALES CHANNELS
 ===================================================== */
 
-.dashboard-panel {
-    margin-top: 28px;
-}
+.channel-grid {
+    display: grid;
 
+    grid-template-columns:
+        repeat(2, minmax(0, 1fr));
+
+    gap: 18px;
+}
 
 .dashboard-channel-grid {
     padding: 0 22px 22px;
 }
 
-
-/* =====================================================
-   LINKS USED AS BUTTONS
-===================================================== */
-
-a.btn {
-    display: inline-flex;
+.channel-card {
+    display: flex;
 
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
 
-    text-decoration: none;
+    gap: 20px;
+
+    padding: 22px;
+
+    background: #ffffff;
+
+    border: 1px solid #e4e7ec;
+
+    border-radius: 10px;
+}
+
+.channel-card h4 {
+    margin-bottom: 5px;
+
+    color: #07101f;
+
+    font-size: 18px;
+}
+
+.channel-card p {
+    color: #667085;
+
+    font-size: 14px;
 }
 
 
-a.text-button {
-    text-decoration: none;
+/* CONNECTION STATUS */
+
+.connection-status {
+    display: inline-block;
+
+    padding: 6px 10px;
+
+    border-radius: 20px;
+
+    font-size: 12px;
+    font-weight: 700;
+
+    white-space: nowrap;
 }
 
+.connection-status.connected {
+    background: #e8f7ef;
 
-a.text-button:hover {
-    text-decoration: underline;
+    color: #18794e;
+}
+
+.connection-status.disconnected {
+    background: #f2f4f7;
+
+    color: #667085;
+}
+
+.connection-status.demo {
+    background: #fff4d6;
+
+    color: #926b00;
+}
+
+.connection-status.manual {
+    background: #eef2ff;
+
+    color: #3949ab;
 }
 
 
 /* =====================================================
-   RESPONSIVE MODULE GRID
+   RESPONSIVE
 ===================================================== */
 
-@media (max-width: 1200px) {
+@media (max-width: 1250px) {
+
+    .kpi-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
 
     .module-grid {
         grid-template-columns:
@@ -763,16 +772,67 @@ a.text-button:hover {
 }
 
 
+@media (max-width: 900px) {
+
+    .sidebar {
+        width: 220px;
+    }
+
+    .main-content {
+        width: calc(100% - 220px);
+
+        margin-left: 220px;
+
+        padding: 24px;
+    }
+
+    .channel-grid {
+        grid-template-columns: 1fr;
+    }
+
+}
+
+
 @media (max-width: 700px) {
+
+    .sidebar {
+        position: relative;
+
+        width: 100%;
+        height: auto;
+        min-height: auto;
+    }
+
+    .main-content {
+        width: 100%;
+
+        margin-left: 0;
+
+        padding: 20px;
+    }
+
+    .topbar {
+        align-items: flex-start;
+
+        flex-direction: column;
+    }
+
+    .topbar-actions {
+        flex-wrap: wrap;
+    }
+
+    .kpi-grid {
+        grid-template-columns: 1fr;
+    }
 
     .module-grid {
         grid-template-columns: 1fr;
     }
 
-    .section-heading {
+    .panel-header {
         align-items: flex-start;
+
         flex-direction: column;
-        gap: 8px;
     }
 
 }
