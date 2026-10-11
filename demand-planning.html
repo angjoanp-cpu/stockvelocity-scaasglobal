@@ -9,17 +9,23 @@
         content="width=device-width, initial-scale=1.0"
     >
 
+    <meta
+        name="description"
+        content="StockVelocity Demand Planning - forecast demand by SKU and sales channel using Shopify, Amazon, wholesale and other sales data."
+    >
+
     <title>Demand Planning | StockVelocity</title>
 
     <link rel="stylesheet" href="style.css">
 </head>
 
-
 <body>
 
 <div class="app-layout">
 
-    <!-- SIDEBAR -->
+    <!-- =====================================================
+         SIDEBAR
+    ====================================================== -->
 
     <aside class="sidebar">
 
@@ -28,13 +34,14 @@
             <p>by SCaaS Global</p>
         </div>
 
-
-        <nav class="sidebar-nav">
+        <nav
+            class="sidebar-nav"
+            aria-label="StockVelocity Navigation"
+        >
 
             <a class="nav-link" href="index.html">
                 Dashboard
             </a>
-
 
             <p class="nav-section-title">
                 Master Data
@@ -86,7 +93,74 @@
                 class="nav-link"
                 href="landed-cost.html"
             >
-                Landed Cost
+                Landed Cost Scenarios
+            </a>
+
+
+            <p class="nav-section-title">
+                Execution
+            </p>
+
+            <a class="nav-link" href="sales-orders.html">
+                Sales Orders
+            </a>
+
+            <a class="nav-link" href="purchasing.html">
+                Purchasing
+            </a>
+
+            <a class="nav-link" href="purchase-orders.html">
+                Purchase Orders
+            </a>
+
+            <a class="nav-link" href="inbound-shipments.html">
+                Inbound Shipments
+            </a>
+
+            <a class="nav-link" href="receiving.html">
+                Receiving
+            </a>
+
+            <a class="nav-link" href="returns.html">
+                RMA & Returns
+            </a>
+
+
+            <p class="nav-section-title">
+                Performance
+            </p>
+
+            <a class="nav-link" href="inventory-health.html">
+                Inventory Health
+            </a>
+
+            <a class="nav-link" href="cash-requirements.html">
+                Cash Requirements
+            </a>
+
+            <a class="nav-link" href="revenue-risk.html">
+                Revenue at Risk
+            </a>
+
+            <a class="nav-link" href="supplier-performance.html">
+                Supplier Performance
+            </a>
+
+            <a class="nav-link" href="reports.html">
+                Reports
+            </a>
+
+
+            <p class="nav-section-title">
+                System
+            </p>
+
+            <a class="nav-link" href="integrations.html">
+                Integrations
+            </a>
+
+            <a class="nav-link" href="settings.html">
+                Settings
             </a>
 
         </nav>
@@ -94,7 +168,9 @@
     </aside>
 
 
-    <!-- MAIN -->
+    <!-- =====================================================
+         MAIN CONTENT
+    ====================================================== -->
 
     <main class="main-content">
 
@@ -111,7 +187,8 @@
                 </h2>
 
                 <p class="page-description">
-                    Forecast demand by SKU and sales channel.
+                    Forecast demand by SKU and sales channel,
+                    then consolidate requirements for supply planning.
                 </p>
 
             </div>
@@ -134,79 +211,58 @@
 
         <!-- KPI -->
 
-        <div class="kpi-grid">
+        <section
+            class="kpi-grid"
+            aria-label="Demand Planning KPIs"
+        >
 
             <article class="kpi-card">
 
-                <span>
-                    Forecast Demand
-                </span>
+                <span>Total Forecast Demand</span>
 
-                <strong>
-                    950
-                </strong>
+                <strong>950</strong>
 
-                <small>
-                    Units this month
-                </small>
+                <small>Units this month</small>
 
             </article>
 
 
             <article class="kpi-card">
 
-                <span>
-                    Shopify
-                </span>
+                <span>Shopify Demand</span>
 
-                <strong>
-                    490
-                </strong>
+                <strong>490</strong>
 
-                <small>
-                    52% of demand
-                </small>
+                <small>52% of total forecast</small>
 
             </article>
 
 
             <article class="kpi-card">
 
-                <span>
-                    Amazon
-                </span>
+                <span>Amazon Demand</span>
 
-                <strong>
-                    330
-                </strong>
+                <strong>330</strong>
 
-                <small>
-                    35% of demand
-                </small>
+                <small>35% of total forecast</small>
 
             </article>
 
 
             <article class="kpi-card">
 
-                <span>
-                    Wholesale
-                </span>
+                <span>Wholesale Demand</span>
 
-                <strong>
-                    130
-                </strong>
+                <strong>130</strong>
 
-                <small>
-                    13% of demand
-                </small>
+                <small>13% of total forecast</small>
 
             </article>
 
-        </div>
+        </section>
 
 
-        <!-- FORECAST TABLE -->
+        <!-- FORECAST -->
 
         <section class="panel">
 
@@ -219,7 +275,7 @@
                     </h3>
 
                     <p>
-                        Consolidated forecast from all sales channels.
+                        Consolidated forecast by SKU and sales channel.
                     </p>
 
                 </div>
@@ -233,88 +289,94 @@
 
                     <thead>
 
-                    <tr>
-                        <th>SKU</th>
-                        <th>Product</th>
-                        <th>Shopify</th>
-                        <th>Amazon</th>
-                        <th>Wholesale</th>
-                        <th>Total Demand</th>
-                        <th>Lead Time</th>
-                        <th>Safety Stock</th>
-                        <th>DOLT</th>
-                        <th>ROP</th>
-                    </tr>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Product</th>
+                            <th>Shopify</th>
+                            <th>Amazon</th>
+                            <th>Wholesale</th>
+                            <th>Total Demand</th>
+                            <th>Lead Time</th>
+                            <th>Review Period</th>
+                            <th>Safety Stock</th>
+                            <th>DOLT</th>
+                            <th>ROP</th>
+                        </tr>
 
                     </thead>
 
 
                     <tbody>
 
-                    <tr>
-                        <td>FG-100</td>
-                        <td>Core Product A</td>
-                        <td>120</td>
-                        <td>80</td>
-                        <td>50</td>
-                        <td>250</td>
-                        <td>30 days</td>
-                        <td>60</td>
-                        <td>367</td>
-                        <td>310</td>
-                    </tr>
+                        <tr>
+                            <td>FG-100</td>
+                            <td>Core Product A</td>
+                            <td>120</td>
+                            <td>80</td>
+                            <td>50</td>
+                            <td><strong>250</strong></td>
+                            <td>30 days</td>
+                            <td>14 days</td>
+                            <td>60</td>
+                            <td>367</td>
+                            <td>310</td>
+                        </tr>
 
-                    <tr>
-                        <td>FG-101</td>
-                        <td>Core Product B</td>
-                        <td>90</td>
-                        <td>110</td>
-                        <td>30</td>
-                        <td>230</td>
-                        <td>45 days</td>
-                        <td>75</td>
-                        <td>452</td>
-                        <td>420</td>
-                    </tr>
+                        <tr>
+                            <td>FG-101</td>
+                            <td>Core Product B</td>
+                            <td>90</td>
+                            <td>110</td>
+                            <td>30</td>
+                            <td><strong>230</strong></td>
+                            <td>45 days</td>
+                            <td>14 days</td>
+                            <td>75</td>
+                            <td>452</td>
+                            <td>420</td>
+                        </tr>
 
-                    <tr>
-                        <td>FG-102</td>
-                        <td>Core Product C</td>
-                        <td>160</td>
-                        <td>70</td>
-                        <td>20</td>
-                        <td>250</td>
-                        <td>60 days</td>
-                        <td>100</td>
-                        <td>617</td>
-                        <td>600</td>
-                    </tr>
+                        <tr>
+                            <td>FG-102</td>
+                            <td>Core Product C</td>
+                            <td>160</td>
+                            <td>70</td>
+                            <td>20</td>
+                            <td><strong>250</strong></td>
+                            <td>60 days</td>
+                            <td>14 days</td>
+                            <td>100</td>
+                            <td>617</td>
+                            <td>600</td>
+                        </tr>
 
-                    <tr>
-                        <td>FG-103</td>
-                        <td>Core Product D</td>
-                        <td>70</td>
-                        <td>40</td>
-                        <td>20</td>
-                        <td>130</td>
-                        <td>30 days</td>
-                        <td>35</td>
-                        <td>191</td>
-                        <td>165</td>
-                    </tr>
+                        <tr>
+                            <td>FG-103</td>
+                            <td>Core Product D</td>
+                            <td>70</td>
+                            <td>40</td>
+                            <td>20</td>
+                            <td><strong>130</strong></td>
+                            <td>30 days</td>
+                            <td>14 days</td>
+                            <td>35</td>
+                            <td>191</td>
+                            <td>165</td>
+                        </tr>
 
-                    <tr>
-                        <td>FG-104</td>
-                        <td>Core Product E</td>
-                        <td>50</td>
-                        <td>30</td>
-                        <td>10</td>
-                        <td>90</td>
-                        <td>21 days</td>
-                        <td>25</td>
-                        <td>105</td>
-                        <td>88</td>
-                    </tr>
+                        <tr>
+                            <td>FG-104</td>
+                            <td>Core Product E</td>
+                            <td>50</td>
+                            <td>30</td>
+                            <td>10</td>
+                            <td><strong>90</strong></td>
+                            <td>21 days</td>
+                            <td>14 days</td>
+                            <td>25</td>
+                            <td>105</td>
+                            <td>88</td>
+                        </tr>
 
                     </tbody>
 
