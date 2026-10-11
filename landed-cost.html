@@ -1,1 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Landed Cost | StockVelocity</title>
+
+    <link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+<div class="app-layout">
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <h1>StockVelocity</h1>
+            <p>by SCaaS Global</p>
+        </div>
+
+
+        <nav class="sidebar-nav">
+
+            <a class="nav-link" href="index.html">
+                Dashboard
+            </a>
+
+            <p class="nav-section-title">
+                Planning
+            </p>
+
+            <a
+                class="nav-link"
+                href="demand-planning.html"
+            >
+                Demand Planning
+            </a>
+
+            <a
+                class="nav-link"
+                href="inventory-planning.html"
+            >
+                Inventory Planning
+            </a>
+
+            <a
+                class="nav-link"
+                href="mrp-production.html"
+            >
+                MRP & Production
+            </a>
+
+            <a
+                class="nav-link active"
+                href="landed-cost.html"
+            >
+                Landed Cost
+            </a>
+
+        </nav>
+
+    </aside>
+
+
+    <main class="main-content">
+
+        <header class="topbar">
+
+            <div>
+
+                <p class="eyebrow">
+                    Sourcing Analysis
+                </p>
+
+                <h2>
+                    Landed Cost Scenarios
+                </h2>
+
+                <p class="page-description">
+                    Compare suppliers based on total landed
+                    cost rather than purchase price alone.
+                </p>
+
+            </div>
+
+
+            <div class="topbar-actions">
+
+                <button class="btn btn-secondary">
+                    Export Comparison
+                </button>
+
+                <button class="btn btn-primary">
+                    + New Scenario
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <div class="kpi-grid">
+
+            <article class="kpi-card">
+
+                <span>
+                    Lowest Landed Cost
+                </span>
+
+                <strong>
+                    $11.56
+                </strong>
+
+                <small>
+                    Per unit
+                </small>
+
+            </article>
+
+
+            <article class="kpi-card">
+
+                <span>
+                    Best Scenario
+                </span>
+
+                <strong>
+                    LC-002
+                </strong>
+
+                <small>
+                    Vietnam Supplier
+                </small>
+
+            </article>
+
+
+            <article class="kpi-card">
+
+                <span>
+                    Fastest Lead Time
+                </span>
+
+                <strong>
+                    18 days
+                </strong>
+
+                <small>
+                    USA Supplier
+                </small>
+
+            </article>
+
+
+            <article class="kpi-card">
+
+                <span>
+                    Potential Savings
+                </span>
+
+                <strong>
+                    $890
+                </strong>
+
+                <small>
+                    Per 1,000 units
+                </small>
+
+            </article>
+
+        </div>
+
+
+        <section class="panel">
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h3>
+                        Scenario Comparison
+                    </h3>
+
+                    <p>
+                        Compare sourcing options using total landed cost.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                    <tr>
+                        <th>Scenario</th>
+                        <th>Vendor</th>
+                        <th>Country</th>
+                        <th>Qty</th>
+                        <th>Unit Cost</th>
+                        <th>Freight</th>
+                        <th>Tariff</th>
+                        <th>Duty</th>
+                        <th>Lead Time</th>
+                        <th>MOQ</th>
+                        <th>Landed / Unit</th>
+                    </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                    <tr>
+
+                        <td>LC-001</td>
+
+                        <td>
+                            Shenzhen Supplier A
+                        </td>
+
+                        <td>China</td>
+
+                        <td>1,000</td>
+
+                        <td>$8.50</td>
+
+                        <td>$1,500</td>
+
+                        <td>15%</td>
+
+                        <td>5%</td>
+
+                        <td>60 days</td>
+
+                        <td>1,000</td>
+
+                        <td>
+                            <strong>
+                                $12.45
+                            </strong>
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>LC-002</td>
+
+                        <td>
+                            Ho Chi Minh Supplier B
+                        </td>
+
+                        <td>Vietnam</td>
+
+                        <td>1,000</td>
+
+                        <td>$9.20</td>
+
+                        <td>$1,350</td>
+
+                        <td>5%</td>
+
+                        <td>3%</td>
+
+                        <td>50 days</td>
+
+                        <td>800</td>
+
+                        <td>
+                            <strong>
+                                $11.56
+                            </strong>
+                        </td>
+
+                    </tr>
+
+
+                    <tr>
+
+                        <td>LC-003</td>
+
+                        <td>
+                            California Supplier C
+                        </td>
+
+                        <td>USA</td>
+
+                        <td>1,000</td>
+
+                        <td>$11.75</td>
+
+                        <td>$500</td>
+
+                        <td>0%</td>
+
+                        <td>0%</td>
+
+                        <td>18 days</td>
+
+                        <td>500</td>
+
+                        <td>
+                            <strong>
+                                $12.50
+                            </strong>
+                        </td>
+
+                    </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
