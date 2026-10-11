@@ -512,3 +512,47 @@ td {
     background: #f2f4f7;
     color: #667085;
 }
+.nav-link {
+    display: block;
+    width: 100%;
+
+    padding: 11px 14px;
+
+    border: none;
+    border-radius: 7px;
+
+    background: transparent;
+
+    color: #adb6c7;
+
+    text-decoration: none;
+    text-align: left;
+
+    cursor: pointer;
+
+    transition: 0.2s;
+}
+
+.nav-link:hover {
+    background: #151f30;
+    color: #ffffff;
+}
+
+.nav-link.active {
+    background: #d5af49;
+    color: #07101f;
+    font-weight: 700;
+}
+
+.nav-section-title {
+    margin: 24px 14px 8px;
+
+    font-size: 10px;
+    font-weight: 700;
+
+    letter-spacing: 1.4px;
+
+    text-transform: uppercase;
+
+    color: #677386;
+}
