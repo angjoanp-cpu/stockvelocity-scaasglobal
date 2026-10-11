@@ -161,261 +161,248 @@
 
     <main class="main-content">
 
-        <header class="topbar">
+    <header class="topbar">
+
+        <div>
+
+            <p class="eyebrow">
+                Planning
+            </p>
+
+            <h2>
+                Inventory Planning
+            </h2>
+
+            <p class="page-description">
+                Balance forecast demand against available
+                and incoming inventory.
+            </p>
+
+        </div>
+
+
+        <div class="topbar-actions">
+
+            <a
+                href="demand-planning.html"
+                class="btn btn-secondary"
+            >
+                Demand Planning
+            </a>
+
+            <button
+                class="btn btn-primary"
+                type="button"
+            >
+                Run Planning
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- =================================================
+         KPI CARDS
+    ================================================== -->
+
+    <section class="kpi-grid">
+
+        <article class="kpi-card">
+
+            <span>
+                Inventory Value
+            </span>
+
+            <strong>
+                $248,450
+            </strong>
+
+            <small>
+                Demo inventory value
+            </small>
+
+        </article>
+
+
+        <article class="kpi-card">
+
+            <span>
+                Order Now
+            </span>
+
+            <strong id="order-now-kpi">
+                0
+            </strong>
+
+            <small>
+                Critical SKUs
+            </small>
+
+        </article>
+
+
+        <article class="kpi-card">
+
+            <span>
+                Incoming Inventory
+            </span>
+
+            <strong id="incoming-kpi">
+                0
+            </strong>
+
+            <small>
+                Units expected
+            </small>
+
+        </article>
+
+
+        <article class="kpi-card">
+
+            <span>
+                Healthy SKUs
+            </span>
+
+            <strong id="healthy-kpi">
+                0
+            </strong>
+
+            <small>
+                Within planning target
+            </small>
+
+        </article>
+
+    </section>
+
+
+    <!-- =================================================
+         INVENTORY REQUIREMENTS
+    ================================================== -->
+
+    <section class="panel">
+
+        <div class="panel-header">
 
             <div>
 
-                <p class="eyebrow">
-                    Planning
-                </p>
+                <h3>
+                    Inventory Requirements
+                </h3>
 
-                <h2>
-                    Inventory Planning
-                </h2>
-
-                <p class="page-description">
-                    Balance forecast demand against available
-                    and incoming inventory.
+                <p>
+                    Changes made in Demand Planning
+                    automatically flow into this table.
                 </p>
 
             </div>
 
+        </div>
 
-            <div class="topbar-actions">
 
-                <button class="btn btn-secondary">
-                    Export Plan
-                </button>
+        <div class="table-container">
 
-                <button class="btn btn-primary">
-                    Run Planning
-                </button>
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>SKU</th>
+                        <th>Product</th>
+                        <th>Available</th>
+                        <th>Incoming</th>
+                        <th>Expected Inventory</th>
+                        <th>Forecast</th>
+                        <th>ROP</th>
+                        <th>Recommended Order</th>
+                        <th>Status</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="inventory-table-body">
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         INVENTORY LOGIC
+    ================================================== -->
+
+    <section class="panel dashboard-panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h3>
+                    Inventory Logic
+                </h3>
+
+                <p>
+                    Current StockVelocity demo calculations.
+                </p>
 
             </div>
 
-        </header>
+        </div>
 
 
-        <!-- KPI -->
+        <div class="planning-notes">
 
-        <section
-            class="kpi-grid"
-            aria-label="Inventory Planning KPIs"
-        >
-
-            <article class="kpi-card">
-
-                <span>
-                    Inventory Value
-                </span>
+            <div>
 
                 <strong>
-                    $248,450
+                    Expected Inventory
                 </strong>
 
-                <small>
-                    Across all locations
-                </small>
+                <p>
+                    Available + Incoming
+                </p>
 
-            </article>
+            </div>
 
 
-            <article class="kpi-card">
+            <div>
 
-                <span>
+                <strong>
+                    Recommended Order
+                </strong>
+
+                <p>
+                    Target Inventory
+                    − Expected Inventory
+                </p>
+
+            </div>
+
+
+            <div>
+
+                <strong>
                     Order Now
-                </span>
-
-                <strong>
-                    2
                 </strong>
 
-                <small>
-                    Critical SKUs
-                </small>
-
-            </article>
-
-
-            <article class="kpi-card">
-
-                <span>
-                    Incoming Inventory
-                </span>
-
-                <strong>
-                    390
-                </strong>
-
-                <small>
-                    Units expected
-                </small>
-
-            </article>
-
-
-            <article class="kpi-card">
-
-                <span>
-                    Healthy SKUs
-                </span>
-
-                <strong>
-                    3
-                </strong>
-
-                <small>
-                    Within planning target
-                </small>
-
-            </article>
-
-        </section>
-
-
-        <!-- INVENTORY PLAN -->
-
-        <section class="panel">
-
-            <div class="panel-header">
-
-                <div>
-
-                    <h3>
-                        Inventory Requirements
-                    </h3>
-
-                    <p>
-                        Recommended inventory actions based on
-                        forecast demand, available stock and incoming supply.
-                    </p>
-
-                </div>
+                <p>
+                    Expected Inventory
+                    ≤ Reorder Point
+                </p>
 
             </div>
 
+        </div>
 
-            <div class="table-container">
+    </section>
 
-                <table>
-
-                    <thead>
-
-                        <tr>
-                            <th>SKU</th>
-                            <th>Product</th>
-                            <th>Available</th>
-                            <th>Incoming</th>
-                            <th>Expected Inventory</th>
-                            <th>Forecast</th>
-                            <th>ROP</th>
-                            <th>Recommended Order</th>
-                            <th>Status</th>
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody>
-
-                        <tr>
-                            <td>FG-100</td>
-                            <td>Core Product A</td>
-                            <td>185</td>
-                            <td>100</td>
-                            <td>285</td>
-                            <td>250</td>
-                            <td>310</td>
-                            <td><strong>275</strong></td>
-
-                            <td>
-                                <span class="status danger">
-                                    Order Now
-                                </span>
-                            </td>
-                        </tr>
-
-
-                        <tr>
-                            <td>FG-101</td>
-                            <td>Core Product B</td>
-                            <td>420</td>
-                            <td>200</td>
-                            <td>620</td>
-                            <td>230</td>
-                            <td>420</td>
-                            <td>0</td>
-
-                            <td>
-                                <span class="status healthy">
-                                    Healthy
-                                </span>
-                            </td>
-                        </tr>
-
-
-                        <tr>
-                            <td>FG-102</td>
-                            <td>Core Product C</td>
-                            <td>240</td>
-                            <td>0</td>
-                            <td>240</td>
-                            <td>250</td>
-                            <td>600</td>
-                            <td><strong>610</strong></td>
-
-                            <td>
-                                <span class="status danger">
-                                    Order Now
-                                </span>
-                            </td>
-                        </tr>
-
-
-                        <tr>
-                            <td>FG-103</td>
-                            <td>Core Product D</td>
-                            <td>170</td>
-                            <td>50</td>
-                            <td>220</td>
-                            <td>130</td>
-                            <td>165</td>
-                            <td>0</td>
-
-                            <td>
-                                <span class="status healthy">
-                                    Healthy
-                                </span>
-                            </td>
-                        </tr>
-
-
-                        <tr>
-                            <td>FG-104</td>
-                            <td>Core Product E</td>
-                            <td>70</td>
-                            <td>40</td>
-                            <td>110</td>
-                            <td>90</td>
-                            <td>88</td>
-                            <td>0</td>
-
-                            <td>
-                                <span class="status healthy">
-                                    Healthy
-                                </span>
-                            </td>
-                        </tr>
-
-                    </tbody>
-
-                </table>
-
-            </div>
-
-        </section>
-
-    </main>
+</main>
 
 </div>
 
