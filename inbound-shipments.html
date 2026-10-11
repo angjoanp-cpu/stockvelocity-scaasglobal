@@ -1,1 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="StockVelocity Inbound Shipments - track purchase orders and inventory moving from suppliers to warehouses, 3PLs and FBA."
+    >
+
+    <title>Inbound Shipments | StockVelocity</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <h1>StockVelocity</h1>
+            <p>by SCaaS Global</p>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="StockVelocity Navigation">
+
+            <a class="nav-link" href="index.html">Dashboard</a>
+
+            <p class="nav-section-title">Master Data</p>
+
+            <a class="nav-link" href="product-master.html">Product Master</a>
+            <a class="nav-link" href="vendor-master.html">Vendor Master</a>
+            <a class="nav-link" href="locations.html">Locations</a>
+            <a class="nav-link" href="sales-channels.html">Sales Channels</a>
+
+            <p class="nav-section-title">Planning</p>
+
+            <a class="nav-link" href="demand-planning.html">Demand Planning</a>
+            <a class="nav-link" href="inventory-planning.html">Inventory Planning</a>
+            <a class="nav-link" href="mrp-production.html">MRP & Production</a>
+            <a class="nav-link" href="landed-cost.html">Landed Cost Scenarios</a>
+
+            <p class="nav-section-title">Execution</p>
+
+            <a class="nav-link" href="sales-orders.html">Sales Orders</a>
+            <a class="nav-link" href="purchasing.html">Purchasing</a>
+            <a class="nav-link" href="purchase-orders.html">Purchase Orders</a>
+            <a class="nav-link active" href="inbound-shipments.html">Inbound Shipments</a>
+            <a class="nav-link" href="receiving.html">Receiving</a>
+            <a class="nav-link" href="returns.html">RMA & Returns</a>
+
+            <p class="nav-section-title">Performance</p>
+
+            <a class="nav-link" href="inventory-health.html">Inventory Health</a>
+            <a class="nav-link" href="cash-requirements.html">Cash Requirements</a>
+            <a class="nav-link" href="revenue-risk.html">Revenue at Risk</a>
+            <a class="nav-link" href="supplier-performance.html">Supplier Performance</a>
+            <a class="nav-link" href="reports.html">Reports</a>
+
+            <p class="nav-section-title">System</p>
+
+            <a class="nav-link" href="integrations.html">Integrations</a>
+            <a class="nav-link" href="settings.html">Settings</a>
+
+        </nav>
+
+    </aside>
+
+
+    <main class="main-content">
+
+        <header class="topbar">
+
+            <div>
+                <p class="eyebrow">Execution</p>
+                <h2>Inbound Shipments</h2>
+
+                <p class="page-description">
+                    Track goods moving from suppliers to warehouses, 3PLs and FBA.
+                </p>
+            </div>
+
+            <div class="topbar-actions">
+
+                <button class="btn btn-secondary">
+                    Export Shipments
+                </button>
+
+                <button class="btn btn-primary">
+                    + Add Shipment
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <section class="kpi-grid">
+
+            <article class="kpi-card">
+                <span>Open Shipments</span>
+                <strong>6</strong>
+                <small>In transit or pending</small>
+            </article>
+
+            <article class="kpi-card">
+                <span>Units In Transit</span>
+                <strong>1,640</strong>
+                <small>Across all shipments</small>
+            </article>
+
+            <article class="kpi-card">
+                <span>Arriving This Week</span>
+                <strong>2</strong>
+                <small>Inbound shipments</small>
+            </article>
+
+            <article class="kpi-card">
+                <span>Delayed</span>
+                <strong>1</strong>
+                <small>Requires follow-up</small>
+            </article>
+
+        </section>
+
+
+        <section class="panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h3>Inbound Shipment Tracker</h3>
+                    <p>Monitor movement from supplier dispatch to final destination.</p>
+                </div>
+
+            </div>
+
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Shipment</th>
+                            <th>PO</th>
+                            <th>Origin</th>
+                            <th>Destination</th>
+                            <th>Mode</th>
+                            <th>ETD</th>
+                            <th>ETA</th>
+                            <th>Units</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+                            <td>INB-501</td>
+                            <td>PO-2401</td>
+                            <td>Shenzhen</td>
+                            <td>Los Angeles 3PL</td>
+                            <td>Ocean</td>
+                            <td>Oct 2, 2026</td>
+                            <td>Oct 20, 2026</td>
+                            <td>500</td>
+                            <td>
+                                <span class="status warning">
+                                    In Transit
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>INB-502</td>
+                            <td>PO-2402</td>
+                            <td>Ho Chi Minh</td>
+                            <td>Amazon FBA</td>
+                            <td>Air</td>
+                            <td>Oct 8, 2026</td>
+                            <td>Oct 13, 2026</td>
+                            <td>400</td>
+                            <td>
+                                <span class="status healthy">
+                                    On Schedule
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>INB-503</td>
+                            <td>PO-2403</td>
+                            <td>California</td>
+                            <td>Seattle Warehouse</td>
+                            <td>Truck</td>
+                            <td>Oct 10, 2026</td>
+                            <td>Oct 12, 2026</td>
+                            <td>300</td>
+                            <td>
+                                <span class="status healthy">
+                                    On Schedule
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>INB-504</td>
+                            <td>PO-2404</td>
+                            <td>Guangzhou</td>
+                            <td>Los Angeles 3PL</td>
+                            <td>Ocean</td>
+                            <td>Sep 20, 2026</td>
+                            <td>Oct 8, 2026</td>
+                            <td>420</td>
+                            <td>
+                                <span class="status danger">
+                                    Delayed
+                                </span>
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
