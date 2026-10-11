@@ -801,3 +801,52 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 });
+const vendors = [
+    {
+        id: "VEN-001",
+        name: "Supplier A",
+        city: "Shenzhen",
+        country: "China",
+        currency: "USD",
+        leadTime: 30,
+        paymentTerms: "30% / 70%",
+        otd: 94,
+        quality: 98
+    },
+
+    {
+        id: "VEN-002",
+        name: "Supplier B",
+        city: "Ho Chi Minh City",
+        country: "Vietnam",
+        currency: "USD",
+        leadTime: 45,
+        paymentTerms: "Net 30",
+        otd: 97,
+        quality: 99
+    },
+
+    {
+        id: "VEN-003",
+        name: "Supplier C",
+        city: "California",
+        country: "USA",
+        currency: "USD",
+        leadTime: 18,
+        paymentTerms: "Net 30",
+        otd: 89,
+        quality: 96
+    },
+
+    {
+        id: "VEN-004",
+        name: "Supplier D",
+        city: "Taipei",
+        country: "Taiwan",
+        currency: "USD",
+        leadTime: 35,
+        paymentTerms: "Net 30",
+        otd: 82,
+        quality: 94
+    }
+];
