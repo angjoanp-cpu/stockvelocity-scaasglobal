@@ -1,1 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="StockVelocity Product Master - manage SKU, product, supplier, lead time, MOQ, cost and inventory planning data."
+    >
+
+    <title>Product Master | StockVelocity</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <h1>StockVelocity</h1>
+            <p>by SCaaS Global</p>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="StockVelocity Navigation">
+
+            <a class="nav-link" href="index.html">Dashboard</a>
+
+            <p class="nav-section-title">Master Data</p>
+
+            <a class="nav-link active" href="product-master.html">Product Master</a>
+            <a class="nav-link" href="vendor-master.html">Vendor Master</a>
+            <a class="nav-link" href="locations.html">Locations</a>
+            <a class="nav-link" href="sales-channels.html">Sales Channels</a>
+
+            <p class="nav-section-title">Planning</p>
+
+            <a class="nav-link" href="demand-planning.html">Demand Planning</a>
+            <a class="nav-link" href="inventory-planning.html">Inventory Planning</a>
+            <a class="nav-link" href="mrp-production.html">MRP & Production</a>
+            <a class="nav-link" href="landed-cost.html">Landed Cost Scenarios</a>
+
+            <p class="nav-section-title">Execution</p>
+
+            <a class="nav-link" href="sales-orders.html">Sales Orders</a>
+            <a class="nav-link" href="purchasing.html">Purchasing</a>
+            <a class="nav-link" href="purchase-orders.html">Purchase Orders</a>
+            <a class="nav-link" href="inbound-shipments.html">Inbound Shipments</a>
+            <a class="nav-link" href="receiving.html">Receiving</a>
+            <a class="nav-link" href="returns.html">RMA & Returns</a>
+
+            <p class="nav-section-title">Performance</p>
+
+            <a class="nav-link" href="inventory-health.html">Inventory Health</a>
+            <a class="nav-link" href="cash-requirements.html">Cash Requirements</a>
+            <a class="nav-link" href="revenue-risk.html">Revenue at Risk</a>
+            <a class="nav-link" href="supplier-performance.html">Supplier Performance</a>
+            <a class="nav-link" href="reports.html">Reports</a>
+
+            <p class="nav-section-title">System</p>
+
+            <a class="nav-link" href="integrations.html">Integrations</a>
+            <a class="nav-link" href="settings.html">Settings</a>
+
+        </nav>
+
+    </aside>
+
+
+    <main class="main-content">
+
+        <header class="topbar">
+
+            <div>
+                <p class="eyebrow">Master Data</p>
+                <h2>Product Master</h2>
+
+                <p class="page-description">
+                    Manage product, sourcing and inventory planning information.
+                </p>
+            </div>
+
+            <div class="topbar-actions">
+
+                <button class="btn btn-secondary">
+                    Import Products
+                </button>
+
+                <button class="btn btn-primary">
+                    + Add Product
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <section class="kpi-grid">
+
+            <article class="kpi-card">
+                <span>Active SKUs</span>
+                <strong>128</strong>
+                <small>Currently planned</small>
+            </article>
+
+            <article class="kpi-card">
+                <span>Finished Goods</span>
+                <strong>82</strong>
+                <small>Sellable products</small>
+            </article>
+
+            <article class="kpi-card">
+                <span>Components</span>
+                <strong>46</strong>
+                <small>MRP-managed items</small>
+            </article>
+
+            <article class="kpi-card">
+                <span>Missing Data</span>
+                <strong>5</strong>
+                <small>Require setup</small>
+            </article>
+
+        </section>
+
+
+        <section class="panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h3>Products</h3>
+                    <p>
+                        Master planning data used across demand,
+                        inventory, MRP and purchasing.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>SKU</th>
+                            <th>Product</th>
+                            <th>Type</th>
+                            <th>Vendor</th>
+                            <th>Unit Cost</th>
+                            <th>Lead Time</th>
+                            <th>MOQ</th>
+                            <th>Safety Stock</th>
+                            <th>ROP</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+                            <td>FG-100</td>
+                            <td>Core Product A</td>
+                            <td>Finished Good</td>
+                            <td>Supplier A</td>
+                            <td>$8.50</td>
+                            <td>30 days</td>
+                            <td>500</td>
+                            <td>60</td>
+                            <td>310</td>
+                            <td>
+                                <span class="status healthy">
+                                    Active
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>FG-101</td>
+                            <td>Core Product B</td>
+                            <td>Finished Good</td>
+                            <td>Supplier B</td>
+                            <td>$10.20</td>
+                            <td>45 days</td>
+                            <td>300</td>
+                            <td>75</td>
+                            <td>420</td>
+                            <td>
+                                <span class="status healthy">
+                                    Active
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>FG-102</td>
+                            <td>Core Product C</td>
+                            <td>Finished Good</td>
+                            <td>Supplier B</td>
+                            <td>$12.40</td>
+                            <td>60 days</td>
+                            <td>500</td>
+                            <td>100</td>
+                            <td>600</td>
+                            <td>
+                                <span class="status healthy">
+                                    Active
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>COMP-A</td>
+                            <td>Main Housing</td>
+                            <td>Component</td>
+                            <td>Supplier C</td>
+                            <td>$2.25</td>
+                            <td>21 days</td>
+                            <td>250</td>
+                            <td>50</td>
+                            <td>175</td>
+                            <td>
+                                <span class="status healthy">
+                                    Active
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>COMP-D</td>
+                            <td>Control Module</td>
+                            <td>Component</td>
+                            <td>Supplier D</td>
+                            <td>$4.90</td>
+                            <td>35 days</td>
+                            <td>200</td>
+                            <td>40</td>
+                            <td>150</td>
+                            <td>
+                                <span class="status warning">
+                                    Review
+                                </span>
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
