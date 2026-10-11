@@ -168,225 +168,254 @@
     </aside>
 
 
-    <!-- =====================================================
-         MAIN CONTENT
-    ====================================================== -->
-
     <main class="main-content">
 
-        <header class="topbar">
+    <header class="topbar">
+
+        <div>
+
+            <p class="eyebrow">
+                Planning
+            </p>
+
+            <h2>
+                Demand Planning
+            </h2>
+
+            <p class="page-description">
+                Forecast demand by SKU and sales channel,
+                then consolidate requirements for supply planning.
+            </p>
+
+        </div>
+
+
+        <div class="topbar-actions">
+
+            <button
+                class="btn btn-secondary"
+                id="reset-demo-data"
+                type="button"
+            >
+                Reset Demo Data
+            </button>
+
+            <button
+                class="btn btn-primary"
+                type="button"
+            >
+                Import Forecast
+            </button>
+
+        </div>
+
+    </header>
+
+
+    <!-- =================================================
+         KPI CARDS
+    ================================================== -->
+
+    <section class="kpi-grid">
+
+        <article class="kpi-card">
+
+            <span>
+                Total Forecast Demand
+            </span>
+
+            <strong id="total-demand-kpi">
+                0
+            </strong>
+
+            <small>
+                Units this month
+            </small>
+
+        </article>
+
+
+        <article class="kpi-card">
+
+            <span>
+                Shopify Demand
+            </span>
+
+            <strong id="shopify-demand-kpi">
+                0
+            </strong>
+
+            <small>
+                Forecast units
+            </small>
+
+        </article>
+
+
+        <article class="kpi-card">
+
+            <span>
+                Amazon Demand
+            </span>
+
+            <strong id="amazon-demand-kpi">
+                0
+            </strong>
+
+            <small>
+                Forecast units
+            </small>
+
+        </article>
+
+
+        <article class="kpi-card">
+
+            <span>
+                Wholesale Demand
+            </span>
+
+            <strong id="wholesale-demand-kpi">
+                0
+            </strong>
+
+            <small>
+                Forecast units
+            </small>
+
+        </article>
+
+    </section>
+
+
+    <!-- =================================================
+         DEMAND FORECAST
+    ================================================== -->
+
+    <section class="panel">
+
+        <div class="panel-header">
 
             <div>
 
-                <p class="eyebrow">
-                    Planning
-                </p>
+                <h3>
+                    Demand Forecast
+                </h3>
 
-                <h2>
-                    Demand Planning
-                </h2>
-
-                <p class="page-description">
-                    Forecast demand by SKU and sales channel,
-                    then consolidate requirements for supply planning.
+                <p>
+                    Edit channel forecasts below.
+                    StockVelocity recalculates total demand,
+                    DOLT and reorder point automatically.
                 </p>
 
             </div>
 
+        </div>
 
-            <div class="topbar-actions">
 
-                <button class="btn btn-secondary">
-                    Import Forecast
-                </button>
+        <div class="table-container">
 
-                <button class="btn btn-primary">
-                    + Add Forecast
-                </button>
+            <table>
+
+                <thead>
+
+                    <tr>
+                        <th>SKU</th>
+                        <th>Product</th>
+                        <th>Shopify</th>
+                        <th>Amazon</th>
+                        <th>Wholesale</th>
+                        <th>Total Demand</th>
+                        <th>Lead Time</th>
+                        <th>Review Period</th>
+                        <th>Safety Stock</th>
+                        <th>DOLT</th>
+                        <th>ROP</th>
+                    </tr>
+
+                </thead>
+
+
+                <tbody id="demand-table-body">
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         CALCULATION NOTES
+    ================================================== -->
+
+    <section class="panel dashboard-panel">
+
+        <div class="panel-header">
+
+            <div>
+
+                <h3>
+                    Planning Logic
+                </h3>
+
+                <p>
+                    Calculations currently used by the demo.
+                </p>
 
             </div>
 
-        </header>
+        </div>
 
 
-        <!-- KPI -->
+        <div class="planning-notes">
 
-        <section
-            class="kpi-grid"
-            aria-label="Demand Planning KPIs"
-        >
+            <div>
 
-            <article class="kpi-card">
+                <strong>
+                    Total Demand
+                </strong>
 
-                <span>Total Forecast Demand</span>
-
-                <strong>950</strong>
-
-                <small>Units this month</small>
-
-            </article>
-
-
-            <article class="kpi-card">
-
-                <span>Shopify Demand</span>
-
-                <strong>490</strong>
-
-                <small>52% of total forecast</small>
-
-            </article>
-
-
-            <article class="kpi-card">
-
-                <span>Amazon Demand</span>
-
-                <strong>330</strong>
-
-                <small>35% of total forecast</small>
-
-            </article>
-
-
-            <article class="kpi-card">
-
-                <span>Wholesale Demand</span>
-
-                <strong>130</strong>
-
-                <small>13% of total forecast</small>
-
-            </article>
-
-        </section>
-
-
-        <!-- FORECAST -->
-
-        <section class="panel">
-
-            <div class="panel-header">
-
-                <div>
-
-                    <h3>
-                        Demand Forecast
-                    </h3>
-
-                    <p>
-                        Consolidated forecast by SKU and sales channel.
-                    </p>
-
-                </div>
+                <p>
+                    Shopify + Amazon + Wholesale
+                </p>
 
             </div>
 
 
-            <div class="table-container">
+            <div>
 
-                <table>
+                <strong>
+                    DOLT
+                </strong>
 
-                    <thead>
-
-                        <tr>
-                            <th>SKU</th>
-                            <th>Product</th>
-                            <th>Shopify</th>
-                            <th>Amazon</th>
-                            <th>Wholesale</th>
-                            <th>Total Demand</th>
-                            <th>Lead Time</th>
-                            <th>Review Period</th>
-                            <th>Safety Stock</th>
-                            <th>DOLT</th>
-                            <th>ROP</th>
-                        </tr>
-
-                    </thead>
-
-
-                    <tbody>
-
-                        <tr>
-                            <td>FG-100</td>
-                            <td>Core Product A</td>
-                            <td>120</td>
-                            <td>80</td>
-                            <td>50</td>
-                            <td><strong>250</strong></td>
-                            <td>30 days</td>
-                            <td>14 days</td>
-                            <td>60</td>
-                            <td>367</td>
-                            <td>310</td>
-                        </tr>
-
-                        <tr>
-                            <td>FG-101</td>
-                            <td>Core Product B</td>
-                            <td>90</td>
-                            <td>110</td>
-                            <td>30</td>
-                            <td><strong>230</strong></td>
-                            <td>45 days</td>
-                            <td>14 days</td>
-                            <td>75</td>
-                            <td>452</td>
-                            <td>420</td>
-                        </tr>
-
-                        <tr>
-                            <td>FG-102</td>
-                            <td>Core Product C</td>
-                            <td>160</td>
-                            <td>70</td>
-                            <td>20</td>
-                            <td><strong>250</strong></td>
-                            <td>60 days</td>
-                            <td>14 days</td>
-                            <td>100</td>
-                            <td>617</td>
-                            <td>600</td>
-                        </tr>
-
-                        <tr>
-                            <td>FG-103</td>
-                            <td>Core Product D</td>
-                            <td>70</td>
-                            <td>40</td>
-                            <td>20</td>
-                            <td><strong>130</strong></td>
-                            <td>30 days</td>
-                            <td>14 days</td>
-                            <td>35</td>
-                            <td>191</td>
-                            <td>165</td>
-                        </tr>
-
-                        <tr>
-                            <td>FG-104</td>
-                            <td>Core Product E</td>
-                            <td>50</td>
-                            <td>30</td>
-                            <td>10</td>
-                            <td><strong>90</strong></td>
-                            <td>21 days</td>
-                            <td>14 days</td>
-                            <td>25</td>
-                            <td>105</td>
-                            <td>88</td>
-                        </tr>
-
-                    </tbody>
-
-                </table>
+                <p>
+                    Daily Demand ×
+                    (Lead Time + Review Period)
+                </p>
 
             </div>
 
-        </section>
 
-    </main>
+            <div>
+
+                <strong>
+                    Reorder Point
+                </strong>
+
+                <p>
+                    Daily Demand × Lead Time
+                    + Safety Stock
+                </p>
+
+            </div>
+
+        </div>
+
+    </section>
+
+</main>
 
 </div>
 
