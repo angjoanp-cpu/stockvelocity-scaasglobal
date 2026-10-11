@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="StockVelocity Settings - configure demand planning, inventory, MRP, purchasing and system preferences."
+    >
+
+    <title>Settings | StockVelocity</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <h1>StockVelocity</h1>
+            <p>by SCaaS Global</p>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="StockVelocity Navigation">
+
+            <a class="nav-link" href="index.html">Dashboard</a>
+
+            <p class="nav-section-title">Master Data</p>
+
+            <a class="nav-link" href="product-master.html">Product Master</a>
+            <a class="nav-link" href="vendor-master.html">Vendor Master</a>
+            <a class="nav-link" href="locations.html">Locations</a>
+            <a class="nav-link" href="sales-channels.html">Sales Channels</a>
+
+            <p class="nav-section-title">Planning</p>
+
+            <a class="nav-link" href="demand-planning.html">Demand Planning</a>
+            <a class="nav-link" href="inventory-planning.html">Inventory Planning</a>
+            <a class="nav-link" href="mrp-production.html">MRP & Production</a>
+            <a class="nav-link" href="landed-cost.html">Landed Cost Scenarios</a>
+
+            <p class="nav-section-title">Execution</p>
+
+            <a class="nav-link" href="sales-orders.html">Sales Orders</a>
+            <a class="nav-link" href="purchasing.html">Purchasing</a>
+            <a class="nav-link" href="purchase-orders.html">Purchase Orders</a>
+            <a class="nav-link" href="inbound-shipments.html">Inbound Shipments</a>
+            <a class="nav-link" href="receiving.html">Receiving</a>
+            <a class="nav-link" href="returns.html">RMA & Returns</a>
+
+            <p class="nav-section-title">Performance</p>
+
+            <a class="nav-link" href="inventory-health.html">Inventory Health</a>
+            <a class="nav-link" href="cash-requirements.html">Cash Requirements</a>
+            <a class="nav-link" href="revenue-risk.html">Revenue at Risk</a>
+            <a class="nav-link" href="supplier-performance.html">Supplier Performance</a>
+            <a class="nav-link" href="reports.html">Reports</a>
+
+            <p class="nav-section-title">System</p>
+
+            <a class="nav-link" href="integrations.html">Integrations</a>
+            <a class="nav-link active" href="settings.html">Settings</a>
+
+        </nav>
+
+    </aside>
+
+
+    <main class="main-content">
+
+        <header class="topbar">
+
+            <div>
+                <p class="eyebrow">System</p>
+                <h2>Settings</h2>
+
+                <p class="page-description">
+                    Configure StockVelocity planning assumptions and system preferences.
+                </p>
+            </div>
+
+            <div class="topbar-actions">
+
+                <button
+                    class="btn btn-primary"
+                    id="save-settings"
+                    type="button"
+                >
+                    Save Settings
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <section class="panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h3>Planning Settings</h3>
+
+                    <p>
+                        Default assumptions used in StockVelocity calculations.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="settings-grid">
+
+                <div class="form-field">
+
+                    <label for="forecast-period">
+                        Forecast Period
+                    </label>
+
+                    <select id="forecast-period">
+                        <option value="monthly" selected>Monthly</option>
+                        <option value="weekly">Weekly</option>
+                        <option value="daily">Daily</option>
+                    </select>
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <label for="review-period">
+                        Default Review Period
+                    </label>
+
+                    <input
+                        type="number"
+                        id="review-period"
+                        value="14"
+                        min="0"
+                    >
+
+                    <small>Days</small>
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <label for="target-cover">
+                        Default Target Coverage
+                    </label>
+
+                    <input
+                        type="number"
+                        id="target-cover"
+                        value="2"
+                        min="0"
+                        step="0.1"
+                    >
+
+                    <small>Months</small>
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <label for="service-level">
+                        Service Level
+                    </label>
+
+                    <select id="service-level">
+                        <option>90%</option>
+                        <option selected>95%</option>
+                        <option>97%</option>
+                        <option>98%</option>
+                        <option>99%</option>
+                    </select>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="panel dashboard-panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h3>Inventory Rules</h3>
+
+                    <p>
+                        Configure how StockVelocity identifies inventory actions.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="settings-grid">
+
+                <div class="form-field">
+
+                    <label for="low-stock-threshold">
+                        Low Stock Threshold
+                    </label>
+
+                    <input
+                        type="number"
+                        id="low-stock-threshold"
+                        value="1"
+                        min="0"
+                        step="0.1"
+                    >
+
+                    <small>Months of cover</small>
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <label for="excess-threshold">
+                        Excess Inventory Threshold
+                    </label>
+
+                    <input
+                        type="number"
+                        id="excess-threshold"
+                        value="6"
+                        min="0"
+                        step="0.1"
+                    >
+
+                    <small>Months of cover</small>
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <label for="slow-mover-threshold">
+                        Slow Mover Threshold
+                    </label>
+
+                    <input
+                        type="number"
+                        id="slow-mover-threshold"
+                        value="90"
+                        min="1"
+                    >
+
+                    <small>Days</small>
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <label for="default-lead-time">
+                        Default Lead Time
+                    </label>
+
+                    <input
+                        type="number"
+                        id="default-lead-time"
+                        value="30"
+                        min="0"
+                    >
+
+                    <small>Days</small>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="panel dashboard-panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h3>Financial Settings</h3>
+
+                    <p>
+                        Defaults used in purchasing and landed cost calculations.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="settings-grid">
+
+                <div class="form-field">
+
+                    <label for="currency">
+                        Base Currency
+                    </label>
+
+                    <select id="currency">
+                        <option selected>USD</option>
+                        <option>SGD</option>
+                        <option>PHP</option>
+                        <option>EUR</option>
+                        <option>GBP</option>
+                        <option>AUD</option>
+                    </select>
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <label for="freight-buffer">
+                        Freight Cost Buffer
+                    </label>
+
+                    <input
+                        type="number"
+                        id="freight-buffer"
+                        value="10"
+                        min="0"
+                    >
+
+                    <small>%</small>
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <label for="duty-buffer">
+                        Duty / Tariff Buffer
+                    </label>
+
+                    <input
+                        type="number"
+                        id="duty-buffer"
+                        value="5"
+                        min="0"
+                    >
+
+                    <small>%</small>
+
+                </div>
+
+
+                <div class="form-field">
+
+                    <label for="purchase-buffer">
+                        Purchase Quantity Buffer
+                    </label>
+
+                    <input
+                        type="number"
+                        id="purchase-buffer"
+                        value="0"
+                        min="0"
+                    >
+
+                    <small>%</small>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <section class="panel dashboard-panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h3>System Information</h3>
+
+                    <p>
+                        Current StockVelocity environment.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="table-container">
+
+                <table>
+
+                    <tbody>
+
+                        <tr>
+                            <th>Application</th>
+                            <td>StockVelocity</td>
+                        </tr>
+
+                        <tr>
+                            <th>Company</th>
+                            <td>SCaaS Global</td>
+                        </tr>
+
+                        <tr>
+                            <th>Environment</th>
+                            <td>Demo / Prototype</td>
+                        </tr>
+
+                        <tr>
+                            <th>Data Source</th>
+                            <td>Sample Data</td>
+                        </tr>
+
+                        <tr>
+                            <th>API Connections</th>
+                            <td>Not Yet Connected</td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
