@@ -1,1 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="StockVelocity Vendor Master - manage suppliers, sourcing countries, payment terms, lead times and supplier performance."
+    >
+
+    <title>Vendor Master | StockVelocity</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <h1>StockVelocity</h1>
+            <p>by SCaaS Global</p>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="StockVelocity Navigation">
+
+            <a class="nav-link" href="index.html">Dashboard</a>
+
+            <p class="nav-section-title">Master Data</p>
+
+            <a class="nav-link" href="product-master.html">Product Master</a>
+            <a class="nav-link active" href="vendor-master.html">Vendor Master</a>
+            <a class="nav-link" href="locations.html">Locations</a>
+            <a class="nav-link" href="sales-channels.html">Sales Channels</a>
+
+            <p class="nav-section-title">Planning</p>
+
+            <a class="nav-link" href="demand-planning.html">Demand Planning</a>
+            <a class="nav-link" href="inventory-planning.html">Inventory Planning</a>
+            <a class="nav-link" href="mrp-production.html">MRP & Production</a>
+            <a class="nav-link" href="landed-cost.html">Landed Cost Scenarios</a>
+
+            <p class="nav-section-title">Execution</p>
+
+            <a class="nav-link" href="sales-orders.html">Sales Orders</a>
+            <a class="nav-link" href="purchasing.html">Purchasing</a>
+            <a class="nav-link" href="purchase-orders.html">Purchase Orders</a>
+            <a class="nav-link" href="inbound-shipments.html">Inbound Shipments</a>
+            <a class="nav-link" href="receiving.html">Receiving</a>
+            <a class="nav-link" href="returns.html">RMA & Returns</a>
+
+            <p class="nav-section-title">Performance</p>
+
+            <a class="nav-link" href="inventory-health.html">Inventory Health</a>
+            <a class="nav-link" href="cash-requirements.html">Cash Requirements</a>
+            <a class="nav-link" href="revenue-risk.html">Revenue at Risk</a>
+            <a class="nav-link" href="supplier-performance.html">Supplier Performance</a>
+            <a class="nav-link" href="reports.html">Reports</a>
+
+            <p class="nav-section-title">System</p>
+
+            <a class="nav-link" href="integrations.html">Integrations</a>
+            <a class="nav-link" href="settings.html">Settings</a>
+
+        </nav>
+
+    </aside>
+
+
+    <main class="main-content">
+
+        <header class="topbar">
+
+            <div>
+                <p class="eyebrow">Master Data</p>
+                <h2>Vendor Master</h2>
+
+                <p class="page-description">
+                    Manage suppliers, sourcing terms and procurement information.
+                </p>
+            </div>
+
+            <div class="topbar-actions">
+
+                <button class="btn btn-secondary">
+                    Import Vendors
+                </button>
+
+                <button class="btn btn-primary">
+                    + Add Vendor
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <section class="kpi-grid">
+
+            <article class="kpi-card">
+                <span>Active Vendors</span>
+                <strong>18</strong>
+                <small>Approved suppliers</small>
+            </article>
+
+            <article class="kpi-card">
+                <span>Countries</span>
+                <strong>6</strong>
+                <small>Current sourcing markets</small>
+            </article>
+
+            <article class="kpi-card">
+                <span>Average Lead Time</span>
+                <strong>38 days</strong>
+                <small>Across active vendors</small>
+            </article>
+
+            <article class="kpi-card">
+                <span>Vendor Issues</span>
+                <strong>2</strong>
+                <small>Require follow-up</small>
+            </article>
+
+        </section>
+
+
+        <section class="panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h3>Suppliers</h3>
+                    <p>
+                        Supplier master data used in purchasing,
+                        landed cost and performance reporting.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Vendor ID</th>
+                            <th>Vendor</th>
+                            <th>Country</th>
+                            <th>Currency</th>
+                            <th>Lead Time</th>
+                            <th>Payment Terms</th>
+                            <th>MOQ</th>
+                            <th>On-Time Delivery</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+                            <td>VEN-001</td>
+                            <td>Supplier A</td>
+                            <td>China</td>
+                            <td>USD</td>
+                            <td>30 days</td>
+                            <td>30% / 70%</td>
+                            <td>500</td>
+                            <td>94%</td>
+                            <td>
+                                <span class="status healthy">
+                                    Approved
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>VEN-002</td>
+                            <td>Supplier B</td>
+                            <td>Vietnam</td>
+                            <td>USD</td>
+                            <td>45 days</td>
+                            <td>Net 30</td>
+                            <td>300</td>
+                            <td>97%</td>
+                            <td>
+                                <span class="status healthy">
+                                    Approved
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>VEN-003</td>
+                            <td>Supplier C</td>
+                            <td>China</td>
+                            <td>USD</td>
+                            <td>21 days</td>
+                            <td>50% / 50%</td>
+                            <td>250</td>
+                            <td>89%</td>
+                            <td>
+                                <span class="status warning">
+                                    Monitor
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>VEN-004</td>
+                            <td>Supplier D</td>
+                            <td>Taiwan</td>
+                            <td>USD</td>
+                            <td>35 days</td>
+                            <td>Net 30</td>
+                            <td>200</td>
+                            <td>82%</td>
+                            <td>
+                                <span class="status danger">
+                                    Review
+                                </span>
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
