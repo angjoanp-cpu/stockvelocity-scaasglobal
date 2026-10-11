@@ -1,1 +1,1401 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="StockVelocity by SCaaS Global - Inventory, demand planning, purchasing, production, sales channel and supply chain management system."
+    >
+
+    <title>StockVelocity | SCaaS Global</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+
+<body>
+
+    <div class="app-layout">
+
+
+        <!-- =====================================================
+             SIDEBAR
+        ====================================================== -->
+
+        <aside class="sidebar">
+
+            <div class="brand">
+
+                <h1>StockVelocity</h1>
+
+                <p>by SCaaS Global</p>
+
+            </div>
+
+
+            <nav
+                class="sidebar-nav"
+                aria-label="StockVelocity Navigation"
+            >
+
+
+                <!-- DASHBOARD -->
+
+                <button
+                    class="nav-link active"
+                    data-page="dashboard"
+                >
+                    Dashboard
+                </button>
+
+
+                <!-- =========================
+                     MASTER DATA
+                ========================== -->
+
+                <p class="nav-section-title">
+                    Master Data
+                </p>
+
+
+                <button
+                    class="nav-link"
+                    data-page="products"
+                >
+                    Product Master
+                </button>
+
+
+                <button
+                    class="nav-link"
+                    data-page="vendors"
+                >
+                    Vendor Master
+                </button>
+
+
+                <button
+                    class="nav-link"
+                    data-page="locations"
+                >
+                    Locations
+                </button>
+
+
+                <button
+                    class="nav-link"
+                    data-page="sales-channels"
+                >
+                    Sales Channels
+                </button>
+
+
+                <!-- =========================
+                     PLANNING
+                ========================== -->
+
+                <p class="nav-section-title">
+                    Planning
+                </p>
+
+
+                <button
+                    class="nav-link"
+                    data-page="demand"
+                >
+                    Demand Planning
+                </button>
+
+
+                <button
+                    class="nav-link"
+                    data-page="inventory"
+                >
+                    Inventory Planning
+                </button>
+
+
+                <button
+                    class="nav-link"
+                    data-page="mrp"
+                >
+                    MRP & Production
+                </button>
+
+
+                <button
+                    class="nav-link"
+                    data-page="landed-cost"
+                >
+                    Landed Cost Scenarios
+                </button>
+
+
+                <!-- =========================
+                     EXECUTION
+                ========================== -->
+
+                <p class="nav-section-title">
+                    Execution
+                </p>
+
+
+                <button
+                    class="nav-link"
+                    data-page="sales-orders"
+                >
+                    Sales Orders
+                </button>
+
+
+                <button
+                    class="nav-link"
+                    data-page="purchasing"
+                >
+                    Purchasing
+                </button>
+
+
+                <button
+                    class="nav-link"
+                    data-page="purchase-orders"
+                >
+                    Purchase Orders
+                </button>
+
+
+                <button
+                    class="nav-link"
+                    data-page="inbound"
+                >
+                    Inbound Shipments
+                </button>
+
+
+                <button
+                    class="nav-link"
+                    data-page="receiving"
+                >
+                    Receiving
+                </button>
+
+
+                <button
+                    class="nav-link"
+                    data-page="returns"
+                >
+                    RMA & Returns
+                </button>
+
+
+                <!-- =========================
+                     PERFORMANCE
+                ========================== -->
+
+                <p class="nav-section-title">
+                    Performance
+                </p>
+
+
+                <button
+                    class="nav-link"
+                    data-page="inventory-health"
+                >
+                    Inventory Health
+                </button>
+
+
+                <button
+                    class="nav-link"
+                    data-page="cash-requirements"
+                >
+                    Cash Requirements
+                </button>
+
+
+                <button
+                    class="nav-link"
+                    data-page="revenue-risk"
+                >
+                    Revenue at Risk
+                </button>
+
+
+                <button
+                    class="nav-link"
+                    data-page="supplier-performance"
+                >
+                    Supplier Performance
+                </button>
+
+
+                <button
+                    class="nav-link"
+                    data-page="reports"
+                >
+                    Reports
+                </button>
+
+
+                <!-- =========================
+                     SYSTEM
+                ========================== -->
+
+                <p class="nav-section-title">
+                    System
+                </p>
+
+
+                <button
+                    class="nav-link"
+                    data-page="integrations"
+                >
+                    Integrations
+                </button>
+
+
+                <button
+                    class="nav-link"
+                    data-page="settings"
+                >
+                    Settings
+                </button>
+
+            </nav>
+
+        </aside>
+
+
+        <!-- =====================================================
+             MAIN CONTENT
+        ====================================================== -->
+
+        <main class="main-content">
+
+
+            <!-- =================================================
+                 TOP BAR
+            ================================================== -->
+
+            <header class="topbar">
+
+                <div>
+
+                    <p class="eyebrow">
+                        Supply Chain Operating System
+                    </p>
+
+                    <h2 id="page-title">
+                        Dashboard
+                    </h2>
+
+                </div>
+
+
+                <div
+                    class="topbar-actions"
+                    id="topbar-actions"
+                >
+
+                    <button
+                        class="btn btn-secondary"
+                        id="secondary-action"
+                    >
+                        Import CSV
+                    </button>
+
+
+                    <button
+                        class="btn btn-primary"
+                        id="primary-action"
+                    >
+                        + Add Product
+                    </button>
+
+                </div>
+
+            </header>
+
+
+            <!-- =================================================
+                 DASHBOARD
+            ================================================== -->
+
+            <section
+                id="dashboard"
+                class="page active"
+            >
+
+                <div class="welcome-card">
+
+                    <div>
+
+                        <p class="eyebrow">
+                            Inventory Command Center
+                        </p>
+
+                        <h3>
+                            Turn inventory into healthier cash flow.
+                        </h3>
+
+                        <p>
+                            See what needs attention across demand,
+                            inventory, purchasing, suppliers,
+                            sales channels and production.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <!-- KPI CARDS -->
+
+                <div class="kpi-grid">
+
+
+                    <article class="kpi-card">
+
+                        <span>
+                            Total Inventory Value
+                        </span>
+
+                        <strong>
+                            $248,450
+                        </strong>
+
+                        <small>
+                            Across all locations
+                        </small>
+
+                    </article>
+
+
+                    <article class="kpi-card">
+
+                        <span>
+                            Products to Order
+                        </span>
+
+                        <strong>
+                            12
+                        </strong>
+
+                        <small>
+                            Reorder action required
+                        </small>
+
+                    </article>
+
+
+                    <article class="kpi-card">
+
+                        <span>
+                            Revenue at Risk
+                        </span>
+
+                        <strong>
+                            $32,800
+                        </strong>
+
+                        <small>
+                            Projected shortages
+                        </small>
+
+                    </article>
+
+
+                    <article class="kpi-card">
+
+                        <span>
+                            Open Purchase Orders
+                        </span>
+
+                        <strong>
+                            8
+                        </strong>
+
+                        <small>
+                            Awaiting delivery
+                        </small>
+
+                    </article>
+
+                </div>
+
+
+                <!-- INVENTORY ALERTS -->
+
+                <section class="panel">
+
+                    <div class="panel-header">
+
+                        <div>
+
+                            <h3>
+                                Inventory Alerts
+                            </h3>
+
+                            <p>
+                                Products requiring planning action.
+                            </p>
+
+                        </div>
+
+
+                        <button class="text-button">
+                            View All
+                        </button>
+
+                    </div>
+
+
+                    <div class="table-container">
+
+                        <table>
+
+                            <thead>
+
+                                <tr>
+                                    <th>SKU</th>
+                                    <th>Product</th>
+                                    <th>Available</th>
+                                    <th>Incoming</th>
+                                    <th>ROP</th>
+                                    <th>Status</th>
+                                </tr>
+
+                            </thead>
+
+
+                            <tbody>
+
+
+                                <tr>
+
+                                    <td>FG-100</td>
+
+                                    <td>
+                                        Core Product A
+                                    </td>
+
+                                    <td>185</td>
+
+                                    <td>100</td>
+
+                                    <td>320</td>
+
+                                    <td>
+
+                                        <span class="status danger">
+                                            Order Now
+                                        </span>
+
+                                    </td>
+
+                                </tr>
+
+
+                                <tr>
+
+                                    <td>FG-101</td>
+
+                                    <td>
+                                        Core Product B
+                                    </td>
+
+                                    <td>420</td>
+
+                                    <td>200</td>
+
+                                    <td>390</td>
+
+                                    <td>
+
+                                        <span class="status healthy">
+                                            Healthy
+                                        </span>
+
+                                    </td>
+
+                                </tr>
+
+
+                                <tr>
+
+                                    <td>FG-102</td>
+
+                                    <td>
+                                        Core Product C
+                                    </td>
+
+                                    <td>240</td>
+
+                                    <td>0</td>
+
+                                    <td>260</td>
+
+                                    <td>
+
+                                        <span class="status warning">
+                                            Order Soon
+                                        </span>
+
+                                    </td>
+
+                                </tr>
+
+                            </tbody>
+
+                        </table>
+
+                    </div>
+
+                </section>
+
+            </section>
+
+
+            <!-- =================================================
+                 PRODUCT MASTER
+            ================================================== -->
+
+            <section
+                id="products"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <h3>
+                            Product Master
+                        </h3>
+
+                        <p>
+                            Manage product information and supply
+                            chain planning settings.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 VENDOR MASTER
+            ================================================== -->
+
+            <section
+                id="vendors"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <h3>
+                            Vendor Master
+                        </h3>
+
+                        <p>
+                            Manage suppliers, lead times,
+                            payment terms and sourcing information.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 LOCATIONS
+            ================================================== -->
+
+            <section
+                id="locations"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <h3>
+                            Locations
+                        </h3>
+
+                        <p>
+                            Manage warehouses, 3PLs,
+                            Amazon FBA and other inventory locations.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 SALES CHANNELS
+            ================================================== -->
+
+            <section
+                id="sales-channels"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <h3>
+                            Sales Channels
+                        </h3>
+
+                        <p>
+                            Connect sales channels and bring
+                            order, inventory and demand data
+                            into StockVelocity.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="channel-grid">
+
+
+                    <article class="channel-card">
+
+                        <div>
+
+                            <h4>
+                                Shopify
+                            </h4>
+
+                            <p>
+                                Orders, products and inventory.
+                            </p>
+
+                        </div>
+
+
+                        <span class="connection-status demo">
+                            Demo
+                        </span>
+
+                    </article>
+
+
+                    <article class="channel-card">
+
+                        <div>
+
+                            <h4>
+                                Amazon
+                            </h4>
+
+                            <p>
+                                Orders, FBA inventory and SKU demand.
+                            </p>
+
+                        </div>
+
+
+                        <span class="connection-status disconnected">
+                            Not Connected
+                        </span>
+
+                    </article>
+
+
+                    <article class="channel-card">
+
+                        <div>
+
+                            <h4>
+                                Walmart
+                            </h4>
+
+                            <p>
+                                Marketplace orders and inventory.
+                            </p>
+
+                        </div>
+
+
+                        <span class="connection-status disconnected">
+                            Not Connected
+                        </span>
+
+                    </article>
+
+
+                    <article class="channel-card">
+
+                        <div>
+
+                            <h4>
+                                BigCommerce
+                            </h4>
+
+                            <p>
+                                Store orders, products and demand.
+                            </p>
+
+                        </div>
+
+
+                        <span class="connection-status disconnected">
+                            Not Connected
+                        </span>
+
+                    </article>
+
+
+                    <article class="channel-card">
+
+                        <div>
+
+                            <h4>
+                                Wholesale / B2B
+                            </h4>
+
+                            <p>
+                                Manage wholesale and distributor demand.
+                            </p>
+
+                        </div>
+
+
+                        <span class="connection-status manual">
+                            Manual
+                        </span>
+
+                    </article>
+
+
+                    <article class="channel-card">
+
+                        <div>
+
+                            <h4>
+                                CSV Import
+                            </h4>
+
+                            <p>
+                                Import sales from other channels.
+                            </p>
+
+                        </div>
+
+
+                        <span class="connection-status manual">
+                            Available
+                        </span>
+
+                    </article>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 DEMAND PLANNING
+            ================================================== -->
+
+            <section
+                id="demand"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <h3>
+                            Demand Planning
+                        </h3>
+
+                        <p>
+                            Forecast demand by product and
+                            sales channel.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 INVENTORY PLANNING
+            ================================================== -->
+
+            <section
+                id="inventory"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <h3>
+                            Inventory Planning
+                        </h3>
+
+                        <p>
+                            Monitor available inventory,
+                            incoming inventory, safety stock,
+                            reorder points and inventory coverage.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 MRP & PRODUCTION
+            ================================================== -->
+
+            <section
+                id="mrp"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <h3>
+                            MRP & Production
+                        </h3>
+
+                        <p>
+                            Plan finished goods,
+                            materials and production requirements.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 LANDED COST
+            ================================================== -->
+
+            <section
+                id="landed-cost"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <h3>
+                            Landed Cost Scenarios
+                        </h3>
+
+                        <p>
+                            Compare product cost, freight,
+                            tariffs, duties and sourcing scenarios.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 SALES ORDERS
+            ================================================== -->
+
+            <section
+                id="sales-orders"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <h3>
+                            Sales Orders
+                        </h3>
+
+                        <p>
+                            Monitor orders received from
+                            connected sales channels.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 PURCHASING
+            ================================================== -->
+
+            <section
+                id="purchasing"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <h3>
+                            Purchasing
+                        </h3>
+
+                        <p>
+                            Review purchasing recommendations
+                            based on demand and inventory requirements.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 PURCHASE ORDERS
+            ================================================== -->
+
+            <section
+                id="purchase-orders"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <h3>
+                            Purchase Orders
+                        </h3>
+
+                        <p>
+                            Create and manage supplier
+                            purchase orders.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 INBOUND SHIPMENTS
+            ================================================== -->
+
+            <section
+                id="inbound"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <h3>
+                            Inbound Shipments
+                        </h3>
+
+                        <p>
+                            Track inventory moving from
+                            suppliers to warehouses and 3PLs.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 RECEIVING
+            ================================================== -->
+
+            <section
+                id="receiving"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <h3>
+                            Receiving
+                        </h3>
+
+                        <p>
+                            Record received, rejected
+                            and outstanding quantities.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 RMA & RETURNS
+            ================================================== -->
+
+            <section
+                id="returns"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <h3>
+                            RMA & Returns
+                        </h3>
+
+                        <p>
+                            Manage customer returns,
+                            supplier returns and rejected inventory.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 INVENTORY HEALTH
+            ================================================== -->
+
+            <section
+                id="inventory-health"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <h3>
+                            Inventory Health
+                        </h3>
+
+                        <p>
+                            Review stockouts, excess inventory,
+                            slow movers and inventory coverage.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 CASH REQUIREMENTS
+            ================================================== -->
+
+            <section
+                id="cash-requirements"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <h3>
+                            Cash Requirements
+                        </h3>
+
+                        <p>
+                            Estimate cash needed for
+                            upcoming inventory purchases.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 REVENUE AT RISK
+            ================================================== -->
+
+            <section
+                id="revenue-risk"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <h3>
+                            Revenue at Risk
+                        </h3>
+
+                        <p>
+                            Identify products at risk of
+                            stockout and lost sales.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 SUPPLIER PERFORMANCE
+            ================================================== -->
+
+            <section
+                id="supplier-performance"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <h3>
+                            Supplier Performance
+                        </h3>
+
+                        <p>
+                            Monitor lead time, delivery,
+                            quality and supplier performance.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 REPORTS
+            ================================================== -->
+
+            <section
+                id="reports"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <h3>
+                            Reports
+                        </h3>
+
+                        <p>
+                            Review inventory, demand,
+                            purchasing and supply chain performance.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 INTEGRATIONS
+            ================================================== -->
+
+            <section
+                id="integrations"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <h3>
+                            Integrations
+                        </h3>
+
+                        <p>
+                            Manage external systems
+                            connected to StockVelocity.
+                        </p>
+
+                    </div>
+
+                </div>
+
+
+                <div class="integration-grid">
+
+
+                    <article class="integration-card">
+
+                        <h4>
+                            Commerce
+                        </h4>
+
+                        <p>
+                            Shopify, Amazon,
+                            Walmart and BigCommerce
+                        </p>
+
+                    </article>
+
+
+                    <article class="integration-card">
+
+                        <h4>
+                            Fulfillment
+                        </h4>
+
+                        <p>
+                            3PL, Amazon FBA
+                            and ShipStation
+                        </p>
+
+                    </article>
+
+
+                    <article class="integration-card">
+
+                        <h4>
+                            Accounting
+                        </h4>
+
+                        <p>
+                            QuickBooks Online
+                        </p>
+
+                    </article>
+
+
+                    <article class="integration-card">
+
+                        <h4>
+                            ERP
+                        </h4>
+
+                        <p>
+                            NetSuite, SAP,
+                            Cin7 and other ERP systems
+                        </p>
+
+                    </article>
+
+
+                    <article class="integration-card">
+
+                        <h4>
+                            Logistics
+                        </h4>
+
+                        <p>
+                            Freight forwarders,
+                            carriers and last-mile partners
+                        </p>
+
+                    </article>
+
+                </div>
+
+            </section>
+
+
+            <!-- =================================================
+                 SETTINGS
+            ================================================== -->
+
+            <section
+                id="settings"
+                class="page"
+            >
+
+                <div class="page-heading">
+
+                    <div>
+
+                        <h3>
+                            Settings
+                        </h3>
+
+                        <p>
+                            Configure StockVelocity
+                            planning rules and preferences.
+                        </p>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+
+        </main>
+
+    </div>
+
+
+    <!-- =====================================================
+         JAVASCRIPT
+    ====================================================== -->
+
+    <script src="script.js"></script>
+
+</body>
+
+</html>
