@@ -1,63 +1,92 @@
-/* =====================================
-   STOCKVELOCITY NAVIGATION
-===================================== */
+document.addEventListener("DOMContentLoaded", function () {
 
-const navLinks = document.querySelectorAll(".nav-link");
+    /* =====================================================
+       CURRENT PAGE NAVIGATION
+    ====================================================== */
 
-const pages = document.querySelectorAll(".page");
-
-const pageTitle = document.getElementById("page-title");
-
-
-navLinks.forEach(function (link) {
-
-    link.addEventListener("click", function () {
-
-        const targetPage = link.dataset.page;
+    const currentPage =
+        window.location.pathname.split("/").pop() || "index.html";
 
 
-        /* Remove active navigation */
-
-        navLinks.forEach(function (item) {
-
-            item.classList.remove("active");
-
-        });
+    const navLinks =
+        document.querySelectorAll(".nav-link");
 
 
-        /* Activate clicked navigation */
+    navLinks.forEach(function (link) {
 
-        link.classList.add("active");
-
-
-        /* Hide every page */
-
-        pages.forEach(function (page) {
-
-            page.classList.remove("active");
-
-        });
+        const linkPage =
+            link.getAttribute("href");
 
 
-        /* Find selected page */
-
-        const selectedPage =
-            document.getElementById(targetPage);
+        link.classList.remove("active");
 
 
-        /* Show selected page */
+        if (
+            linkPage === currentPage ||
+            (
+                currentPage === "" &&
+                linkPage === "index.html"
+            )
+        ) {
 
-        if (selectedPage) {
-
-            selectedPage.classList.add("active");
+            link.classList.add("active");
 
         }
 
+    });
 
-        /* Update page title */
 
-        pageTitle.textContent =
-            link.textContent.trim();
+    /* =====================================================
+       TABLE ROW CLICK FEEDBACK
+       OPTIONAL DEMO BEHAVIOR
+    ====================================================== */
+
+    const tableRows =
+        document.querySelectorAll("tbody tr");
+
+
+    tableRows.forEach(function (row) {
+
+        row.addEventListener("mouseenter", function () {
+
+            row.style.backgroundColor =
+                "#fafbfc";
+
+        });
+
+
+        row.addEventListener("mouseleave", function () {
+
+            row.style.backgroundColor =
+                "";
+
+        });
+
+    });
+
+
+    /* =====================================================
+       DEMO BUTTON FEEDBACK
+    ====================================================== */
+
+    const buttons =
+        document.querySelectorAll("button");
+
+
+    buttons.forEach(function (button) {
+
+        button.addEventListener("click", function () {
+
+            const text =
+                button.textContent.trim();
+
+
+            console.log(
+                "StockVelocity action:",
+                text
+            );
+
+        });
 
     });
 
