@@ -2,7 +2,6 @@
 <html lang="en">
 
 <head>
-
     <meta charset="UTF-8">
 
     <meta
@@ -10,16 +9,21 @@
         content="width=device-width, initial-scale=1.0"
     >
 
+    <meta
+        name="description"
+        content="StockVelocity MRP and Production - convert finished goods demand into production and component requirements."
+    >
+
     <title>MRP & Production | StockVelocity</title>
 
     <link rel="stylesheet" href="style.css">
-
 </head>
-
 
 <body>
 
 <div class="app-layout">
+
+    <!-- SIDEBAR -->
 
     <aside class="sidebar">
 
@@ -28,28 +32,46 @@
             <p>by SCaaS Global</p>
         </div>
 
-
-        <nav class="sidebar-nav">
+        <nav
+            class="sidebar-nav"
+            aria-label="StockVelocity Navigation"
+        >
 
             <a class="nav-link" href="index.html">
                 Dashboard
             </a>
 
+
+            <p class="nav-section-title">
+                Master Data
+            </p>
+
+            <a class="nav-link" href="product-master.html">
+                Product Master
+            </a>
+
+            <a class="nav-link" href="vendor-master.html">
+                Vendor Master
+            </a>
+
+            <a class="nav-link" href="locations.html">
+                Locations
+            </a>
+
+            <a class="nav-link" href="sales-channels.html">
+                Sales Channels
+            </a>
+
+
             <p class="nav-section-title">
                 Planning
             </p>
 
-            <a
-                class="nav-link"
-                href="demand-planning.html"
-            >
+            <a class="nav-link" href="demand-planning.html">
                 Demand Planning
             </a>
 
-            <a
-                class="nav-link"
-                href="inventory-planning.html"
-            >
+            <a class="nav-link" href="inventory-planning.html">
                 Inventory Planning
             </a>
 
@@ -60,17 +82,83 @@
                 MRP & Production
             </a>
 
-            <a
-                class="nav-link"
-                href="landed-cost.html"
-            >
-                Landed Cost
+            <a class="nav-link" href="landed-cost.html">
+                Landed Cost Scenarios
+            </a>
+
+
+            <p class="nav-section-title">
+                Execution
+            </p>
+
+            <a class="nav-link" href="sales-orders.html">
+                Sales Orders
+            </a>
+
+            <a class="nav-link" href="purchasing.html">
+                Purchasing
+            </a>
+
+            <a class="nav-link" href="purchase-orders.html">
+                Purchase Orders
+            </a>
+
+            <a class="nav-link" href="inbound-shipments.html">
+                Inbound Shipments
+            </a>
+
+            <a class="nav-link" href="receiving.html">
+                Receiving
+            </a>
+
+            <a class="nav-link" href="returns.html">
+                RMA & Returns
+            </a>
+
+
+            <p class="nav-section-title">
+                Performance
+            </p>
+
+            <a class="nav-link" href="inventory-health.html">
+                Inventory Health
+            </a>
+
+            <a class="nav-link" href="cash-requirements.html">
+                Cash Requirements
+            </a>
+
+            <a class="nav-link" href="revenue-risk.html">
+                Revenue at Risk
+            </a>
+
+            <a class="nav-link" href="supplier-performance.html">
+                Supplier Performance
+            </a>
+
+            <a class="nav-link" href="reports.html">
+                Reports
+            </a>
+
+
+            <p class="nav-section-title">
+                System
+            </p>
+
+            <a class="nav-link" href="integrations.html">
+                Integrations
+            </a>
+
+            <a class="nav-link" href="settings.html">
+                Settings
             </a>
 
         </nav>
 
     </aside>
 
+
+    <!-- MAIN -->
 
     <main class="main-content">
 
@@ -109,7 +197,12 @@
         </header>
 
 
-        <div class="kpi-grid">
+        <!-- KPI -->
+
+        <section
+            class="kpi-grid"
+            aria-label="MRP KPIs"
+        >
 
             <article class="kpi-card">
 
@@ -178,7 +271,7 @@
 
             </article>
 
-        </div>
+        </section>
 
 
         <!-- PRODUCTION REQUIREMENTS -->
@@ -208,59 +301,63 @@
 
                     <thead>
 
-                    <tr>
-                        <th>Finished Good</th>
-                        <th>Requirement</th>
-                        <th>Available</th>
-                        <th>Production Required</th>
-                        <th>Status</th>
-                    </tr>
+                        <tr>
+                            <th>Finished Good</th>
+                            <th>Requirement</th>
+                            <th>Available</th>
+                            <th>Production Required</th>
+                            <th>Need Date</th>
+                            <th>Status</th>
+                        </tr>
 
                     </thead>
 
 
                     <tbody>
 
-                    <tr>
-                        <td>FG-100</td>
-                        <td>460</td>
-                        <td>185</td>
-                        <td>275</td>
+                        <tr>
+                            <td>FG-100</td>
+                            <td>460</td>
+                            <td>185</td>
+                            <td><strong>275</strong></td>
+                            <td>Oct 18, 2026</td>
 
-                        <td>
-                            <span class="status warning">
-                                Ready for Review
-                            </span>
-                        </td>
-                    </tr>
-
-
-                    <tr>
-                        <td>FG-102</td>
-                        <td>850</td>
-                        <td>240</td>
-                        <td>610</td>
-
-                        <td>
-                            <span class="status danger">
-                                Materials Required
-                            </span>
-                        </td>
-                    </tr>
+                            <td>
+                                <span class="status warning">
+                                    Ready for Review
+                                </span>
+                            </td>
+                        </tr>
 
 
-                    <tr>
-                        <td>FG-104</td>
-                        <td>90</td>
-                        <td>70</td>
-                        <td>20</td>
+                        <tr>
+                            <td>FG-102</td>
+                            <td>850</td>
+                            <td>240</td>
+                            <td><strong>610</strong></td>
+                            <td>Oct 28, 2026</td>
 
-                        <td>
-                            <span class="status warning">
-                                Ready for Review
-                            </span>
-                        </td>
-                    </tr>
+                            <td>
+                                <span class="status danger">
+                                    Materials Required
+                                </span>
+                            </td>
+                        </tr>
+
+
+                        <tr>
+                            <td>FG-104</td>
+                            <td>90</td>
+                            <td>70</td>
+                            <td><strong>20</strong></td>
+                            <td>Oct 15, 2026</td>
+
+                            <td>
+                                <span class="status warning">
+                                    Ready for Review
+                                </span>
+                            </td>
+                        </tr>
 
                     </tbody>
 
@@ -271,12 +368,9 @@
         </section>
 
 
-        <br>
-
-
         <!-- COMPONENT REQUIREMENTS -->
 
-        <section class="panel">
+        <section class="panel dashboard-panel">
 
             <div class="panel-header">
 
@@ -287,7 +381,7 @@
                     </h3>
 
                     <p>
-                        BOM explosion for FG-100 production.
+                        BOM requirements for FG-100 production.
                     </p>
 
                 </div>
@@ -301,71 +395,173 @@
 
                     <thead>
 
-                    <tr>
-                        <th>Component</th>
-                        <th>Description</th>
-                        <th>Qty / FG</th>
-                        <th>Gross Requirement</th>
-                        <th>Available</th>
-                        <th>Incoming</th>
-                        <th>Net Requirement</th>
-                        <th>Status</th>
-                    </tr>
+                        <tr>
+                            <th>Component</th>
+                            <th>Description</th>
+                            <th>Qty / FG</th>
+                            <th>Gross Requirement</th>
+                            <th>Available</th>
+                            <th>Incoming</th>
+                            <th>Net Requirement</th>
+                            <th>Status</th>
+                        </tr>
 
                     </thead>
 
 
                     <tbody>
 
-                    <tr>
-                        <td>COMP-A</td>
-                        <td>Main Housing</td>
-                        <td>1</td>
-                        <td>275</td>
-                        <td>150</td>
-                        <td>100</td>
-                        <td>25</td>
+                        <tr>
+                            <td>COMP-A</td>
+                            <td>Main Housing</td>
+                            <td>1</td>
+                            <td>275</td>
+                            <td>150</td>
+                            <td>100</td>
+                            <td><strong>25</strong></td>
 
-                        <td>
-                            <span class="status danger">
-                                Purchase
-                            </span>
-                        </td>
-                    </tr>
-
-
-                    <tr>
-                        <td>COMP-B</td>
-                        <td>Internal Insert</td>
-                        <td>2</td>
-                        <td>550</td>
-                        <td>400</td>
-                        <td>200</td>
-                        <td>0</td>
-
-                        <td>
-                            <span class="status healthy">
-                                Covered
-                            </span>
-                        </td>
-                    </tr>
+                            <td>
+                                <span class="status danger">
+                                    Purchase
+                                </span>
+                            </td>
+                        </tr>
 
 
-                    <tr>
-                        <td>COMP-C</td>
-                        <td>Packaging Set</td>
-                        <td>1</td>
-                        <td>275</td>
-                        <td>300</td>
-                        <td>0</td>
-                        <td>0</td>
+                        <tr>
+                            <td>COMP-B</td>
+                            <td>Internal Insert</td>
+                            <td>2</td>
+                            <td>550</td>
+                            <td>400</td>
+                            <td>200</td>
+                            <td>0</td>
 
-                        <td>
-                            <span class="status healthy">
-                                Covered
-                            </span>
-                        </td>
-                    </tr>
+                            <td>
+                                <span class="status healthy">
+                                    Covered
+                                </span>
+                            </td>
+                        </tr>
+
+
+                        <tr>
+                            <td>COMP-C</td>
+                            <td>Packaging Set</td>
+                            <td>1</td>
+                            <td>275</td>
+                            <td>300</td>
+                            <td>0</td>
+                            <td>0</td>
+
+                            <td>
+                                <span class="status healthy">
+                                    Covered
+                                </span>
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+
+        <!-- PRODUCTION ORDERS -->
+
+        <section class="panel dashboard-panel">
+
+            <div class="panel-header">
+
+                <div>
+
+                    <h3>
+                        Production Orders
+                    </h3>
+
+                    <p>
+                        Current manufacturing work orders.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+
+                        <tr>
+                            <th>Production Order</th>
+                            <th>SKU</th>
+                            <th>Planned Qty</th>
+                            <th>Produced</th>
+                            <th>Balance</th>
+                            <th>Start Date</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                        </tr>
+
+                    </thead>
+
+
+                    <tbody>
+
+                        <tr>
+                            <td>PRD-001</td>
+                            <td>FG-100</td>
+                            <td>275</td>
+                            <td>150</td>
+                            <td>125</td>
+                            <td>Oct 12, 2026</td>
+                            <td>Oct 18, 2026</td>
+
+                            <td>
+                                <span class="status warning">
+                                    In Production
+                                </span>
+                            </td>
+                        </tr>
+
+
+                        <tr>
+                            <td>PRD-002</td>
+                            <td>FG-102</td>
+                            <td>610</td>
+                            <td>0</td>
+                            <td>610</td>
+                            <td>Oct 15, 2026</td>
+                            <td>Oct 28, 2026</td>
+
+                            <td>
+                                <span class="status danger">
+                                    Waiting Materials
+                                </span>
+                            </td>
+                        </tr>
+
+
+                        <tr>
+                            <td>PRD-003</td>
+                            <td>FG-104</td>
+                            <td>20</td>
+                            <td>20</td>
+                            <td>0</td>
+                            <td>Oct 8, 2026</td>
+                            <td>Oct 10, 2026</td>
+
+                            <td>
+                                <span class="status healthy">
+                                    Completed
+                                </span>
+                            </td>
+                        </tr>
 
                     </tbody>
 
