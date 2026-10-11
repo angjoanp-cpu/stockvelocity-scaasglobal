@@ -904,3 +904,97 @@ td {
     }
 
 }
+/* =====================================================
+   INTERACTIVE PLANNING
+===================================================== */
+
+.table-input {
+    width: 85px;
+
+    padding: 7px 8px;
+
+    background: #ffffff;
+
+    border: 1px solid #d5dae3;
+
+    border-radius: 6px;
+
+    color: #172033;
+
+    text-align: right;
+
+    outline: none;
+}
+
+
+.table-input:focus {
+    border-color: #c9a227;
+
+    box-shadow:
+        0 0 0 3px rgba(201, 162, 39, 0.12);
+}
+
+
+.calculated-value {
+    font-weight: 700;
+
+    color: #07101f;
+
+    background: #fafbfc;
+}
+
+
+/* =====================================================
+   PLANNING NOTES
+===================================================== */
+
+.planning-notes {
+    display: grid;
+
+    grid-template-columns:
+        repeat(3, minmax(0, 1fr));
+
+    gap: 18px;
+
+    padding: 0 22px 22px;
+}
+
+
+.planning-notes > div {
+    padding: 18px;
+
+    background: #f8f9fb;
+
+    border: 1px solid #e4e7ec;
+
+    border-radius: 8px;
+}
+
+
+.planning-notes strong {
+    display: block;
+
+    margin-bottom: 6px;
+
+    color: #07101f;
+
+    font-size: 14px;
+}
+
+
+.planning-notes p {
+    color: #667085;
+
+    font-size: 13px;
+
+    line-height: 1.5;
+}
+
+
+@media (max-width: 900px) {
+
+    .planning-notes {
+        grid-template-columns: 1fr;
+    }
+
+}
