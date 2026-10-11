@@ -1,1 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
 
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <meta
+        name="description"
+        content="StockVelocity Reports - review inventory, demand, purchasing, production, supplier and supply chain performance."
+    >
+
+    <title>Reports | StockVelocity</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<div class="app-layout">
+
+    <aside class="sidebar">
+
+        <div class="brand">
+            <h1>StockVelocity</h1>
+            <p>by SCaaS Global</p>
+        </div>
+
+        <nav class="sidebar-nav" aria-label="StockVelocity Navigation">
+
+            <a class="nav-link" href="index.html">Dashboard</a>
+
+            <p class="nav-section-title">Master Data</p>
+
+            <a class="nav-link" href="product-master.html">Product Master</a>
+            <a class="nav-link" href="vendor-master.html">Vendor Master</a>
+            <a class="nav-link" href="locations.html">Locations</a>
+            <a class="nav-link" href="sales-channels.html">Sales Channels</a>
+
+            <p class="nav-section-title">Planning</p>
+
+            <a class="nav-link" href="demand-planning.html">Demand Planning</a>
+            <a class="nav-link" href="inventory-planning.html">Inventory Planning</a>
+            <a class="nav-link" href="mrp-production.html">MRP & Production</a>
+            <a class="nav-link" href="landed-cost.html">Landed Cost Scenarios</a>
+
+            <p class="nav-section-title">Execution</p>
+
+            <a class="nav-link" href="sales-orders.html">Sales Orders</a>
+            <a class="nav-link" href="purchasing.html">Purchasing</a>
+            <a class="nav-link" href="purchase-orders.html">Purchase Orders</a>
+            <a class="nav-link" href="inbound-shipments.html">Inbound Shipments</a>
+            <a class="nav-link" href="receiving.html">Receiving</a>
+            <a class="nav-link" href="returns.html">RMA & Returns</a>
+
+            <p class="nav-section-title">Performance</p>
+
+            <a class="nav-link" href="inventory-health.html">Inventory Health</a>
+            <a class="nav-link" href="cash-requirements.html">Cash Requirements</a>
+            <a class="nav-link" href="revenue-risk.html">Revenue at Risk</a>
+            <a class="nav-link" href="supplier-performance.html">Supplier Performance</a>
+            <a class="nav-link active" href="reports.html">Reports</a>
+
+            <p class="nav-section-title">System</p>
+
+            <a class="nav-link" href="integrations.html">Integrations</a>
+            <a class="nav-link" href="settings.html">Settings</a>
+
+        </nav>
+
+    </aside>
+
+
+    <main class="main-content">
+
+        <header class="topbar">
+
+            <div>
+                <p class="eyebrow">Performance</p>
+                <h2>Reports</h2>
+
+                <p class="page-description">
+                    Review supply chain performance and export planning information.
+                </p>
+            </div>
+
+            <div class="topbar-actions">
+
+                <button class="btn btn-primary">
+                    Export Report
+                </button>
+
+            </div>
+
+        </header>
+
+
+        <section class="kpi-grid">
+
+            <article class="kpi-card">
+                <span>Inventory Value</span>
+                <strong>$248,450</strong>
+                <small>Current inventory</small>
+            </article>
+
+            <article class="kpi-card">
+                <span>Open PO Value</span>
+                <strong>$46,850</strong>
+                <small>Supplier commitments</small>
+            </article>
+
+            <article class="kpi-card">
+                <span>Revenue at Risk</span>
+                <strong>$32,800</strong>
+                <small>Projected shortage exposure</small>
+            </article>
+
+            <article class="kpi-card">
+                <span>Supplier OTD</span>
+                <strong>91%</strong>
+                <small>Average performance</small>
+            </article>
+
+        </section>
+
+
+        <section class="dashboard-section">
+
+            <div class="section-heading">
+
+                <div>
+                    <h3>Available Reports</h3>
+
+                    <p>
+                        Open detailed StockVelocity analysis.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="module-grid">
+
+
+                <a
+                    href="inventory-health.html"
+                    class="module-card"
+                >
+
+                    <span class="module-label">
+                        Inventory
+                    </span>
+
+                    <h4>
+                        Inventory Health
+                    </h4>
+
+                    <p>
+                        Review stockout risk,
+                        excess inventory and slow movers.
+                    </p>
+
+                    <span class="module-link">
+                        Open Report →
+                    </span>
+
+                </a>
+
+
+                <a
+                    href="cash-requirements.html"
+                    class="module-card"
+                >
+
+                    <span class="module-label">
+                        Cash
+                    </span>
+
+                    <h4>
+                        Cash Requirements
+                    </h4>
+
+                    <p>
+                        Review upcoming inventory
+                        purchasing cash requirements.
+                    </p>
+
+                    <span class="module-link">
+                        Open Report →
+                    </span>
+
+                </a>
+
+
+                <a
+                    href="revenue-risk.html"
+                    class="module-card"
+                >
+
+                    <span class="module-label">
+                        Revenue
+                    </span>
+
+                    <h4>
+                        Revenue at Risk
+                    </h4>
+
+                    <p>
+                        Estimate sales exposed
+                        to projected stockouts.
+                    </p>
+
+                    <span class="module-link">
+                        Open Report →
+                    </span>
+
+                </a>
+
+
+                <a
+                    href="supplier-performance.html"
+                    class="module-card"
+                >
+
+                    <span class="module-label">
+                        Supplier
+                    </span>
+
+                    <h4>
+                        Supplier Performance
+                    </h4>
+
+                    <p>
+                        Review delivery,
+                        lead time and supplier quality.
+                    </p>
+
+                    <span class="module-link">
+                        Open Report →
+                    </span>
+
+                </a>
+
+            </div>
+
+        </section>
+
+
+        <section class="panel dashboard-panel">
+
+            <div class="panel-header">
+
+                <div>
+                    <h3>Supply Chain Summary</h3>
+
+                    <p>
+                        Current StockVelocity planning and execution indicators.
+                    </p>
+                </div>
+
+            </div>
+
+
+            <div class="table-container">
+
+                <table>
+
+                    <thead>
+                        <tr>
+                            <th>Metric</th>
+                            <th>Current</th>
+                            <th>Target</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        <tr>
+                            <td>Inventory Health</td>
+                            <td>68%</td>
+                            <td>85%</td>
+                            <td>
+                                <span class="status warning">
+                                    Below Target
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Supplier OTD</td>
+                            <td>91%</td>
+                            <td>95%</td>
+                            <td>
+                                <span class="status warning">
+                                    Monitor
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Stockout Risk</td>
+                            <td>12 SKUs</td>
+                            <td>&lt; 5 SKUs</td>
+                            <td>
+                                <span class="status danger">
+                                    Action Needed
+                                </span>
+                            </td>
+                        </tr>
+
+                        <tr>
+                            <td>Open PO Exposure</td>
+                            <td>$46,850</td>
+                            <td>Within Budget</td>
+                            <td>
+                                <span class="status healthy">
+                                    Controlled
+                                </span>
+                            </td>
+                        </tr>
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>
+
+<script src="script.js"></script>
+
+</body>
+
+</html>
