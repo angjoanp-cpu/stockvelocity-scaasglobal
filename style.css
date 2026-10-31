@@ -144,11 +144,3 @@ td .sub{display:block;font-size:11.5px;color:var(--muted)}
 .linkbtn.on{font-weight:600;text-decoration:none;background:var(--accent-soft);padding:1px 5px;border-radius:4px}
 
 /* Intelligence source assessment and sensitivity analysis */
-.ai-source-form{display:grid;gap:12px;max-width:920px}
-.ai-source-form textarea{width:100%;min-height:125px;resize:vertical;border:1px solid var(--line);border-radius:var(--r);padding:10px;background:var(--bg);color:var(--ink);font:inherit}
-.ai-findings{border-top:1px solid var(--line);padding-top:12px;line-height:1.6}
-.ai-findings h3{font-size:15px;margin:0 0 8px}
-.ai-findings p{margin:8px 0}
-.ai-findings details{padding:8px 0}
-.ai-findings li{margin:5px 0;overflow-wrap:anywhere}
-.ai-source-error{color:var(--crit);font-weight:600}
