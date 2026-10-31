@@ -773,47 +773,6 @@ const AI_DEF={scope:'vendor',target:'',delay:14,shock:0,airSave:21,airPct:25,sea
 const aiState=()=>(S.ui.ai=Object.assign({},AI_DEF,S.ui.ai||{}));
 
 /* Decision support is local and deterministic; no AI model/news API is claimed. */
-const AI_EVIDENCE={};
-function aiEvidence(){return AI_EVIDENCE[S.ws]||(AI_EVIDENCE[S.ws]={url:'',text:'',analysis:null,error:''});}
-function aiAssessSource(url,body){
-  const raw=String(body||'').slice(0,35000), low=raw.toLowerCase();
-  if(raw.trim().length<70)throw Error('Paste at least 70 characters of the article or official notice to assess its contents.');
-  const patterns=[
-    {key:'port',name:'Port congestion / disruption',re:/\b(port congestion|port closure|port strike|terminal closure|dockworkers?|longshoremen|vessel backlog)\b/i,delay:14},
-    {key:'weather',name:'Severe weather',re:/\b(typhoon|hurricane|cyclone|flooding|severe storm|storm surge)\b/i,delay:10},
-    {key:'labor',name:'Labor disruption',re:/\b(strike|industrial action|labor dispute|walkout)\b/i,delay:10},
-    {key:'route',name:'Shipping route disruption',re:/\b(red sea|suez canal|panama canal|shipping lane|rerouting|diversion|vessel attacks)\b/i,delay:17},
-    {key:'customs',name:'Trade / customs change',re:/\b(tariff|customs hold|import ban|export restriction|sanctions|trade restriction)\b/i,delay:7},
-    {key:'demand',name:'Demand pressure',re:/\b(surge in demand|demand spike|sales spike|peak season|holiday rush)\b/i,delay:0,shock:25},
-    {key:'supply',name:'Supplier / production interruption',re:/\b(factory shutdown|production halt|supplier disruption|raw material shortage|plant closure)\b/i,delay:21}
-  ];
-  const hits=patterns.filter(x=>x.re.test(raw));
-  const negative=/\b(resolved|reopened|ended|normal operations resumed|no disruption|unaffected)\b/i.test(raw);
-  const countryNames=[...new Set(list('vendors').map(v=>v.country).filter(Boolean))];
-  const matchedCountries=countryNames.filter(c=>low.includes(c.toLowerCase()));
-  const matchedVendors=list('vendors').filter(v=>v.name&&low.includes(v.name.toLowerCase()));
-  const refs=hits.map(h=>{const m=raw.match(h.re);const start=Math.max(0,m.index-85),end=Math.min(raw.length,m.index+120);return raw.slice(start,end).replace(/\s+/g,' ').trim()});
-  const target=matchedVendors[0]?{scope:'vendor',target:matchedVendors[0].id,reason:'Vendor name mentioned'}:
-    matchedCountries[0]?{scope:'country',target:matchedCountries[0],reason:'Vendor country mentioned'}:null;
-  return {url,chars:raw.length,hits:hits.map(({key,name})=>({key,name})),delay:negative?0:Math.max(0,...hits.map(h=>h.delay)),shock:negative?0:Math.max(0,...hits.map(h=>h.shock||0)),negative,target,refs,matchedCountries,confidence:target&&hits.length&&!negative?'Moderate':hits.length&&!negative?'Low':'Insufficient',at:new Date().toISOString()};
-}
-function aiEvidencePanel(){
- const ev=aiEvidence(),a=ev.analysis;
- return panel('Source intelligence · analyze an article or notice',
- 'Enter a source URL and paste its text. Keyword-based screening identifies possible disruptions and suggests simulation inputs; it does not verify the source or use a language model.',
- `<div class="pbody"><div class="ai-source-form">
-  <label class="fld"><span>Source URL (optional reference)</span><input id="aiSourceUrl" type="url" placeholder="https://example.com/official-notice" value="${esc(ev.url)}"></label>
-  <label class="fld"><span>Article text / announcement</span><textarea id="aiSourceText" rows="6" placeholder="Paste the relevant article, official notice, or supplier update here...">${esc(ev.text)}</textarea></label>
-  <div class="acts"><button type="button" class="btn pri" data-act="aiAnalyzeSource">Analyze source text</button><button type="button" class="btn" data-act="aiFetchSource">Try reading URL</button><button type="button" class="btn" data-act="aiClearSource">Clear</button></div>
-  <p class="note">URL retrieval is best-effort and often blocked by CORS, paywalls, or website permissions. Never insert an AI API key into this browser code. Source findings are not independently verified.</p>
-  ${ev.error?`<p class="ai-source-error" role="alert">${esc(ev.error)}</p>`:''}
-  ${a?`<div class="ai-findings"><h3>Source assessment <span class="pill ${a.confidence==='Moderate'?'warn':'mute'}">${esc(a.confidence)} evidence</span></h3>
-   <p>${a.hits.length?`Possible signals: ${a.hits.map(h=>esc(h.name)).join(', ')}.`:'No recognized disruption signal in the pasted text.'} ${a.negative?'Potential resolution language detected; review the context carefully.':''}</p>
-   <p><b>Suggested assumptions (not verified):</b> additional delay ${num(a.delay)} days; demand adjustment +${num(a.shock)}%. ${a.target?`Matched sourcing exposure: ${esc(a.target.reason)}.`:'No vendor or sourcing country matched in the workspace; manually select the affected supplier or SKU.'}</p>
-   ${a.refs.length?`<details><summary>Show evidence snippets</summary><ul>${a.refs.slice(0,6).map(r=>`<li>${esc(r)}</li>`).join('')}</ul></details>`:''}
-   <div class="acts"><button class="btn pri" data-act="aiApplySource" ${!a.hits.length?'disabled':''}>Apply assumptions to simulator</button></div>
-   </div>`:''}</div></div>`);
-}
 /* Seeded trials give reproducible uncertainty estimates with no network dependency. */
 function aiTrial(seed){let x=seed>>>0;return ()=>{x=(1664525*x+1013904223)>>>0;return x/4294967296;};}
 function aiQuantile(a,p){const s=a.slice().sort((x,y)=>x-y);return s[Math.floor((s.length-1)*p)]||0;}
@@ -1053,7 +1012,6 @@ VIEWS.ai=()=>{
     <div class="kpi"><span>Late inbound POs</span><strong>${new Set(Object.values(rec).flat().filter(x=>x.late).map(x=>x.po)).size}</strong><small>ETA past vendor promise</small></div>
     <div class="kpi"><span>Largest supplier dependency</span><strong>${vex.length?Math.round(Math.max(...vex.map(x=>(x.inv+x.open)/invTot))*100)+'%':'—'}</strong><small>${vex.length?esc(vex.slice().sort((a,b)=>(b.inv+b.open)-(a.inv+a.open))[0].v.name):'No vendors'}</small></div>
   </div>`+
-  aiEvidencePanel()+
   panel('Risk radar','Highest-scoring products. Each score is the sum of the drivers shown, so you can see exactly why it is flagged.',tbl(['SKU','Product',['Score','n'],'Band','Why',['Stockout','n'],['Exposure','n'],''],top.map(o=>[td(esc(o.r.p.sku),'sku'),td(esc(o.r.p.name)+`<span class="sub">${esc(o.r.p.makeBuy==='make'?'Made in-house':vName(o.r.p.vendorId))}</span>`),td(meter(o.score),'n'),td(bandPill(o.band)),td(chips(o.drivers)),td(o.proj.out==null?'—':o.proj.out===0?'Now':'Day '+o.proj.out,'n'),td(o.exposure?money(o.exposure,0)+(o.via?`<span class="sub">via ${esc(o.via)}</span>`:''):'—','n'),td(`<button class="btn sm" data-act="aiFocus" data-id="${esc(o.r.p.id)}">Simulate</button>`,'act')]),'No supply risks detected','Every product is covered through its lead time and no vendor or PO flags were found.'))+
   `<section class="panel" id="aiScenario"><header><div><h2>Disruption simulator</h2><p>Pick what is disrupted, set your assumptions, and compare responses for every affected product.</p></div></header><div class="pbody"><div class="aigrid">
     <label class="fld"><span>Disruption affects</span><select data-ai="scope">${[['vendor','A vendor'],['country','A sourcing country'],['sku','One product']].map(([v,l])=>`<option value="${v}"${v===u.scope?' selected':''}>${l}</option>`).join('')}</select></label>
@@ -1291,29 +1249,6 @@ A.createPOs = async () => {
   }
 };
 
-/* Article input is never treated as instructions, only text evidence. */
-A.aiAnalyzeSource=()=>{
- const ev=aiEvidence();ev.url=($('#aiSourceUrl')?.value||'').trim();ev.text=($('#aiSourceText')?.value||'').trim();ev.error='';
- try{if(ev.url&&!/^https?:\/\//i.test(ev.url))throw Error('Use an http:// or https:// source URL.');ev.analysis=aiAssessSource(ev.url,ev.text)}catch(e){ev.analysis=null;ev.error=e.message}render();
-};
-A.aiFetchSource=async()=>{
- const ev=aiEvidence();ev.url=($('#aiSourceUrl')?.value||'').trim();ev.text=($('#aiSourceText')?.value||'').trim();ev.error='';
- try{
-  const u=new URL(ev.url);if(!['https:','http:'].includes(u.protocol))throw Error('Enter a valid HTTPS URL.');
-  const btn=document.querySelector('[data-act="aiFetchSource"]');if(btn){btn.disabled=true;btn.textContent='Checking URL…'}
-  const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),9000);
-  let res;try{res=await fetch(u.href,{signal:controller.signal,credentials:'omit',redirect:'follow'})}finally{clearTimeout(timer)}
-  if(!res.ok)throw Error('The website returned HTTP '+res.status);
-  const ct=res.headers.get('content-type')||'';if(!/text\/html|text\/plain/i.test(ct))throw Error('This source is not an HTML/text page. Paste its relevant text instead.');
-  const html=(await res.text()).slice(0,150000);
-  const doc=new DOMParser().parseFromString(html,'text/html');doc.querySelectorAll('script,style,nav,footer,header,form').forEach(n=>n.remove());
-  ev.text=(doc.body?.innerText||doc.body?.textContent||'').replace(/\s+/g,' ').trim().slice(0,35000);
-  ev.analysis=aiAssessSource(ev.url,ev.text);
- }catch(e){ev.error='Could not directly read this URL ('+(e.name==='AbortError'?'timed out':e.message)+'). Paste the article text. Many sites block browser reads through CORS.';ev.analysis=null}
- render();
-};
-A.aiApplySource=()=>{const ev=aiEvidence(),a=ev.analysis;if(!a||!a.hits.length)return;const u=aiState();u.delay=a.delay;u.shock=a.shock;if(a.target){u.scope=a.target.scope;u.target=a.target.target;u.focus=''}render();document.getElementById('aiScenario')?.scrollIntoView({behavior:'smooth',block:'start'});toast('Suggested assumptions applied. Check affected scope and inputs before acting.');};
-A.aiClearSource=()=>{AI_EVIDENCE[S.ws]={url:'',text:'',analysis:null,error:''};render();};
 /* AI Intelligence actions */
 A.aiFocus=d=>{const u=aiState();Object.assign(u,{scope:'sku',target:d.id,focus:d.id});render();const el=document.getElementById('aiScenario');if(el)el.scrollIntoView({behavior:'smooth',block:'start'})};
 A.aiVendor=d=>{const u=aiState();Object.assign(u,{scope:'vendor',target:d.id,focus:''});render();const el=document.getElementById('aiScenario');if(el)el.scrollIntoView({behavior:'smooth',block:'start'})};
