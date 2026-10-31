@@ -9,7 +9,7 @@ const DEF_CFG={serviceLevel:95,safetyDays:14,reviewDays:30,overstockDays:120,def
 const NAV=[
  ['',[['dashboard','Dashboard']]],
  ['Master data',[['products','Product master'],['vendors','Vendor master'],['locations','Locations'],['channels','Sales channels']]],
- ['Planning',[['demand','Demand planning'],['inventory','Inventory planning'],['mrp','MRP & production'],['landed','Landed cost scenarios']]],
+ ['Planning',[['demand','Demand planning'],['inventory','Inventory planning'],['ai','AI Intelligence'],['mrp','MRP & production'],['landed','Landed cost scenarios']]],
  ['Execution',[['orders','Sales orders'],['purchasing','Purchasing'],['pos','Purchase orders'],['inbound','Inbound shipments'],['receiving','Receiving'],['returns','RMA & returns']]],
  ['Performance',[['health','Inventory health'],['cash','Cash requirements'],['risk','Revenue at risk'],['suppliers','Supplier performance'],['reports','Reports']]],
  ['System',[['integrations','Integrations & import'],['workspace','Workspace settings']]]
@@ -88,75 +88,307 @@ function openWorkspace(id){
 ============================================================ */
 const Z={90:1.2816,95:1.6449,97.5:1.96,98:2.0537,99:2.3263};
 let memo={key:null,val:null};
-function compute(){
-  const key=S.ws+':'+ver+':'+stamp+':'+today();
-  if(memo.key===key)return memo.val;
-  const C=cfg(), M6=lastMonths(6), curM=monthKey(0), z=Z[C.serviceLevel]||1.6449, t=today();
-  const prods=list('products').filter(p=>p.active!==false);
-  const dem={}, demCh={};
-  const add=(pid,ch,m,q)=>{if(!pid||!q)return;(dem[pid]=dem[pid]||{})[m]=(dem[pid][m]||0)+q;const k=ch||'_';((demCh[pid]=demCh[pid]||{})[k]=demCh[pid][k]||{})[m]=(demCh[pid][k][m]||0)+q};
-  list('history').forEach(h=>{Object.entries(h.months||{}).forEach(([m,q])=>add(h.productId,h.channelId,m,+q||0))});
-  const alloc={};
-  list('orders').forEach(o=>{if(o.status==='cancelled')return;(o.lines||[]).forEach(l=>{add(l.productId,o.channelId,(o.date||t).slice(0,7),+l.qty||0);if(o.status==='open')alloc[l.productId]=(alloc[l.productId]||0)+(+l.qty||0)})});
-  const inc={}, incEta={};
-  list('pos').forEach(po=>{if(!['placed','in_transit','partial'].includes(po.status))return;(po.lines||[]).forEach(l=>{const r=Math.max(0,(+l.qty||0)-(+l.received||0));inc[l.productId]=(inc[l.productId]||0)+r;const eta=(po.shipment&&po.shipment.eta)||po.expectedDate;if(!incEta[l.productId]||eta<incEta[l.productId])incEta[l.productId]=eta})});
-  const R={};
-  const calc=(p,series,fcOverride,curQty)=>{
-    const l3=series.slice(-3), wma=l3[2]*.5+l3[1]*.3+l3[0]*.2;
-    const fcM=fcOverride!=null?fcOverride:wma*(1+(+p.forecastAdj||0)/100);
-    const avgDaily=fcM/30;
-    const withData=series.filter(x=>x>0).length;
-    const mean=series.reduce((a,b)=>a+b,0)/series.length;
-    const sd=Math.sqrt(series.reduce((a,b)=>a+(b-mean)**2,0)/Math.max(1,series.length-1));
-    const v=V(p.vendorId);
-    const lt=+p.leadTimeDays||(v&&+v.leadTimeDays)||C.defaultLeadTime;
-    const ss=Math.ceil(withData>=3?z*(sd/Math.sqrt(30))*Math.sqrt(lt):avgDaily*C.safetyDays);
-    const rop=Math.ceil(avgDaily*lt+ss);
-    const oh=onHand(p), al=alloc[p.id]||0, av=oh-al, ic=inc[p.id]||0, pos=av+ic;
-    const cover=avgDaily>0?av/avgDaily:Infinity;
-    const target=rop+avgDaily*C.reviewDays;
-    let sug=0;
-    if(avgDaily>0&&pos<=rop){sug=Math.max(target-pos,+p.moq||0);const cp=+p.casePack||1;sug=Math.ceil(sug/cp)*cp}
-    const recent=l3.reduce((a,b)=>a+b,0)+(curQty||0);
-    let status='Healthy';
-    if(avgDaily===0&&recent===0)status=oh>0?'No demand':'Healthy';
-    else if(av<=0)status='Stockout';
-    else if(pos<=rop)status='Order now';
-    else if(cover>C.overstockDays)status='Overstock';
-    const below=avgDaily>0&&av<ss&&av>0;
-    const excessU=avgDaily>0?Math.max(0,av-avgDaily*C.overstockDays):(recent===0?oh:0);
-    const shortU=Math.max(0,avgDaily*lt-pos);
-    const prior=series.slice(0,3).reduce((a,b)=>a+b,0)/3, last=l3.reduce((a,b)=>a+b,0)/3;
-    const trend=prior>0?(last-prior)/prior:(last>0?1:0);
-    return {p,series,wma,fcM,avgDaily,sd,lt,ss,rop,oh,al,av,ic,pos,cover,sug,status,below,excessU,excessV:excessU*(+p.unitCost||0),shortU,riskV:shortU*(+p.price||0),value:oh*(+p.unitCost||0),trend,eta:incEta[p.id]||null,withData,cur:curQty||0};
+
+function compute() {
+  const key = S.ws + ':' + ver + ':' + stamp + ':' + today();
+  if (memo.key === key) return memo.val;
+
+  const C = cfg(),
+    M6 = lastMonths(6),
+    curM = monthKey(0),
+    z = Z[C.serviceLevel] || 1.6449,
+    t = today();
+
+  const prods = list('products').filter(p => p.active !== false);
+  const dem = {}, demCh = {};
+
+  const add = (pid, ch, m, q) => {
+    if (!pid || !q) return;
+
+    (dem[pid] = dem[pid] || {})[m] =
+      (dem[pid][m] || 0) + q;
+
+    const k = ch || '_';
+    ((demCh[pid] = demCh[pid] || {})[k] =
+      demCh[pid][k] || {})[m] =
+      (demCh[pid][k][m] || 0) + q;
   };
-  const ser=pid=>M6.map(m=>(dem[pid]&&dem[pid][m])||0);
-  const fg=prods.filter(p=>p.type!=='component'), comps=prods.filter(p=>p.type==='component');
-  fg.forEach(p=>{R[p.id]=calc(p,ser(p.id),null,(dem[p.id]&&dem[p.id][curM])||0)});
-  // dependent demand for components from make items' BOMs
-  const usedBy={};
-  fg.forEach(p=>{if(p.makeBuy!=='make')return;(p.bom||[]).forEach(b=>{(usedBy[b.componentId]=usedBy[b.componentId]||[]).push({fg:p.id,qty:+b.qty||0})})});
-  comps.forEach(p=>{
-    const own=ser(p.id), uses=usedBy[p.id]||[];
-    const dep=M6.map((m,i)=>own[i]+uses.reduce((a,u)=>a+u.qty*((R[u.fg]&&R[u.fg].series[i])||0),0));
-    const fc=uses.reduce((a,u)=>a+u.qty*((R[u.fg]&&R[u.fg].fcM)||0),0)+own.slice(-3).reduce((a,b,i)=>a+b*[.2,.3,.5][i],0);
-    const curQ=uses.reduce((a,u)=>a+u.qty*((R[u.fg]&&R[u.fg].cur)||0),0);
-    R[p.id]=calc(p,dep,fc,curQ);R[p.id].usedBy=uses;
+
+  list('history').forEach(h => {
+    Object.entries(h.months || {}).forEach(([m, q]) =>
+      add(h.productId, h.channelId, m, +q || 0)
+    );
   });
-  // MRP: component needs for planned production of make items
-  const mrp={};
-  fg.forEach(p=>{if(p.makeBuy!=='make')return;const q=R[p.id].sug;(p.bom||[]).forEach(b=>{mrp[b.componentId]=(mrp[b.componentId]||0)+q*(+b.qty||0)})});
-  const rows=Object.values(R);
-  const agg={
-    value:rows.reduce((a,r)=>a+r.value,0),
-    toOrder:rows.filter(r=>r.sug>0).length,
-    risk:rows.reduce((a,r)=>a+r.riskV,0),
-    excess:rows.reduce((a,r)=>a+r.excessV,0),
-    openPOs:list('pos').filter(p=>['placed','in_transit','partial'].includes(p.status)).length
+
+  // Confirmed open sales orders reserve inventory.
+  const alloc = {};
+
+  list('orders').forEach(o => {
+    if (o.status === 'cancelled') return;
+
+    (o.lines || []).forEach(l => {
+      add(
+        l.productId,
+        o.channelId,
+        (o.date || t).slice(0, 7),
+        +l.qty || 0
+      );
+
+      if (o.status === 'open') {
+        alloc[l.productId] =
+          (alloc[l.productId] || 0) + (+l.qty || 0);
+      }
+    });
+  });
+
+  // Incoming quantities from active purchase orders.
+  const inc = {}, incEta = {};
+
+  list('pos').forEach(po => {
+    if (!['placed', 'in_transit', 'partial'].includes(po.status)) return;
+
+    (po.lines || []).forEach(l => {
+      const r = Math.max(0,
+        (+l.qty || 0) - (+l.received || 0)
+      );
+
+      inc[l.productId] = (inc[l.productId] || 0) + r;
+
+      const eta =
+        (po.shipment && po.shipment.eta) || po.expectedDate;
+
+      if (!incEta[l.productId] || eta < incEta[l.productId]) {
+        incEta[l.productId] = eta;
+      }
+    });
+  });
+
+  const R = {};
+
+  const calc = (p, series, fcOverride, curQty, grossRequirement = 0) => {
+    const l3 = series.slice(-3);
+    const wma = l3[2] * .5 + l3[1] * .3 + l3[0] * .2;
+
+    const fcM = fcOverride != null
+      ? fcOverride
+      : wma * (1 + (+p.forecastAdj || 0) / 100);
+
+    const avgDaily = fcM / 30;
+    const withData = series.filter(x => x > 0).length;
+    const mean = series.reduce((a, b) => a + b, 0) / series.length;
+
+    const sd = Math.sqrt(
+      series.reduce((a, b) => a + (b - mean) ** 2, 0) /
+      Math.max(1, series.length - 1)
+    );
+
+    const v = V(p.vendorId);
+
+    const lt =
+      +p.leadTimeDays ||
+      (v && +v.leadTimeDays) ||
+      C.defaultLeadTime;
+
+    const ssAuto = Math.ceil(
+      withData >= 3
+        ? z * (sd / Math.sqrt(30)) * Math.sqrt(lt)
+        : avgDaily * C.safetyDays
+    );
+
+    // A planner-entered safety stock replaces the calculated one.
+    const ss = aiNum(p.ssOverride) ? Math.ceil(+p.ssOverride) : ssAuto;
+
+    const rop = Math.ceil(avgDaily * lt + ss);
+
+    const oh = onHand(p);
+    const al = alloc[p.id] || 0;
+    const av = oh - al;
+    const ic = inc[p.id] || 0;
+    const pos = av + ic;
+
+    const cover = avgDaily > 0 ? av / avgDaily : Infinity;
+    const target = rop + avgDaily * C.reviewDays;
+
+    // FIX 1: Open sales orders trigger replenishment,
+    // even when historical demand and forecast are zero.
+    const salesShortage = Math.max(0, -pos);
+
+    // FIX 2: BOM requirements trigger component purchases.
+    const productionShortage = Math.max(
+      0, grossRequirement - pos
+    );
+
+    const forecastShortage =
+      avgDaily > 0 && pos <= rop
+        ? Math.max(0, target - pos)
+        : 0;
+
+    const rawNeed = Math.max(
+      salesShortage,
+      productionShortage,
+      forecastShortage
+    );
+
+    let sug = 0;
+
+    if (rawNeed > 0) {
+      const minimum = Math.max(rawNeed, +p.moq || 0);
+      const pack = Math.max(1, +p.casePack || 1);
+      sug = Math.ceil(minimum / pack) * pack;
+    }
+
+    const recent = l3.reduce((a, b) => a + b, 0) + (curQty || 0);
+
+    let status = 'Healthy';
+
+    if (av <= 0 && (al > 0 || grossRequirement > 0 || avgDaily > 0)) {
+      status = 'Stockout';
+    } else if (sug > 0) {
+      status = 'Order now';
+    } else if (avgDaily === 0 && recent === 0) {
+      status = oh > 0 ? 'No demand' : 'Healthy';
+    } else if (cover > C.overstockDays) {
+      status = 'Overstock';
+    }
+
+    const below = avgDaily > 0 && av < ss && av > 0;
+
+    const excessU = avgDaily > 0
+      ? Math.max(0, av - avgDaily * C.overstockDays)
+      : (recent === 0 ? oh : 0);
+
+    const shortU = Math.max(0, avgDaily * lt - pos);
+
+    const prior = series.slice(0, 3)
+      .reduce((a, b) => a + b, 0) / 3;
+
+    const last = l3.reduce((a, b) => a + b, 0) / 3;
+
+    const trend = prior > 0
+      ? (last - prior) / prior
+      : (last > 0 ? 1 : 0);
+
+    return {
+      p, series, wma, fcM, avgDaily, sd,
+      lt, ss, ssAuto, rop, oh, al, av, ic, pos,
+      cover, sug, status, below,
+      excessU,
+      excessV: excessU * (+p.unitCost || 0),
+      shortU,
+      riskV: shortU * (+p.price || 0),
+      value: oh * (+p.unitCost || 0),
+      trend,
+      eta: incEta[p.id] || null,
+      withData,
+      cur: curQty || 0
+    };
   };
-  memo={key,val:{R,rows,agg,mrp,demCh,M6,curM}};
+
+  const ser = pid =>
+    M6.map(m => (dem[pid] && dem[pid][m]) || 0);
+
+  const fg = prods.filter(p => p.type !== 'component');
+  const comps = prods.filter(p => p.type === 'component');
+
+  // Calculate finished-goods replenishment first.
+  fg.forEach(p => {
+    R[p.id] = calc(
+      p,
+      ser(p.id),
+      null,
+      (dem[p.id] && dem[p.id][curM]) || 0
+    );
+  });
+
+  // Identify every component used by manufactured products.
+  const usedBy = {};
+
+  fg.forEach(p => {
+    if (p.makeBuy !== 'make') return;
+
+    (p.bom || []).forEach(b => {
+      (usedBy[b.componentId] =
+        usedBy[b.componentId] || []).push({
+          fg: p.id,
+          qty: +b.qty || 0
+        });
+    });
+  });
+
+  // FIX 3: Calculate material requirements before
+  // evaluating component replenishment.
+  const mrp = {};
+
+  fg.forEach(p => {
+    if (p.makeBuy !== 'make') return;
+
+    const q = R[p.id].sug;
+
+    (p.bom || []).forEach(b => {
+      mrp[b.componentId] =
+        (mrp[b.componentId] || 0) +
+        q * (+b.qty || 0);
+    });
+  });
+
+  // Include BOM requirements in purchasing recommendations.
+  comps.forEach(p => {
+    const own = ser(p.id);
+    const uses = usedBy[p.id] || [];
+
+    const dep = M6.map((m, i) =>
+      own[i] +
+      uses.reduce(
+        (a, u) =>
+          a + u.qty *
+          ((R[u.fg] && R[u.fg].series[i]) || 0),
+        0
+      )
+    );
+
+    const fc =
+      uses.reduce(
+        (a, u) =>
+          a + u.qty *
+          ((R[u.fg] && R[u.fg].fcM) || 0),
+        0
+      ) +
+      own.slice(-3).reduce(
+        (a, b, i) => a + b * [.2, .3, .5][i],
+        0
+      );
+
+    const curQ = uses.reduce(
+      (a, u) =>
+        a + u.qty *
+        ((R[u.fg] && R[u.fg].cur) || 0),
+      0
+    );
+
+    R[p.id] = calc(p, dep, fc, curQ, mrp[p.id] || 0);
+    R[p.id].usedBy = uses;
+  });
+
+  const rows = Object.values(R);
+
+  const agg = {
+    value: rows.reduce((a, r) => a + r.value, 0),
+    toOrder: rows.filter(r => r.sug > 0).length,
+    risk: rows.reduce((a, r) => a + r.riskV, 0),
+    excess: rows.reduce((a, r) => a + r.excessV, 0),
+    openPOs: list('pos').filter(p =>
+      ['placed', 'in_transit', 'partial'].includes(p.status)
+    ).length
+  };
+
+  memo = {
+    key,
+    val: { R, rows, agg, mrp, demCh, M6, curM }
+  };
+
   return memo.val;
 }
+
 let stamp=0;
 const poTotal=po=>(po.lines||[]).reduce((a,l)=>a+(+l.qty||0)*(+l.unitCost||0),0)+(+po.freight||0);
 function cashSchedule(){
@@ -217,6 +449,8 @@ function panel(title,sub,body,acts=''){return `<section class="panel"><header><d
 function render(){
   renderRail();
   const m=$('#main');
+  const act=document.activeElement, keepFk=S.ui.focusFk||(act&&act.dataset&&act.dataset.fk)||null;S.ui.focusFk=null;
+  const keepVal=act&&act.dataset&&act.dataset.fk===keepFk&&act.value!==act.defaultValue?act.value:null;
   if(S.mode==='loading'){return}
   if(S.mode==='nodb'||S.mode==='signedout'){m.innerHTML=`<div class="center"><div class="setup"><h1>Sign in to open your workspace</h1><p>StockVelocity keeps each brand's products, stock, orders and purchase orders in its own private workspace. Open the StockVelocity application to start planning.</p><p class="note">Contact SCaaS Global if you need access to a shared workspace.</p></div></div>`;return}
   if(S.mode==='revoked'){m.innerHTML=`<div class="center"><div class="setup"><h1>Access changed</h1><p>Reload the page to continue.</p></div></div>`;return}
@@ -228,6 +462,7 @@ function render(){
   const sample=list('products').some(p=>p.sample);
   const pre=(S.local&&page==='dashboard'?`<div class="banner warn"><span><b>Standalone mode.</b> Data is saved in this browser on this device only. Clearing browser data erases it. Download a full workspace backup in Workspace settings regularly.</span></div>`:'')+(S.ro?`<div class="banner warn"><span>You have view-only access to this workspace. Changes will not be saved.</span></div>`:'')+(sample&&page==='dashboard'?`<div class="banner"><span><b>Sample data is loaded.</b> These products, vendors and orders are examples so you can see how planning works. Remove them when you're ready to add your own.</span><button class="btn sm" data-act="clearSample"${W()}>Remove sample data</button></div>`:'')+(S.isOwner&&S.ws!==S.uid?`<div class="banner"><span>You're managing <b>${esc(S.wsDoc.brand)}</b>'s workspace as SCaaS Global.</span></div>`:'');
   m.innerHTML=pre+html;
+  if(keepFk){const el=m.querySelector('[data-fk="'+CSS.escape(keepFk)+'"]');if(el){if(keepVal!=null)el.value=keepVal;el.focus();if(keepVal==null&&el.select&&el.type!=='search')el.select()}}
 }
 
 /* ============================================================
@@ -264,9 +499,9 @@ async function loadSample(mainLoc){
   let seed=7;const rnd=()=>{seed=(seed*16807)%2147483647;return seed/2147483647};
   const t=today(), s={sample:true};
   const v1=nid(),v2=nid(),v3=nid(),l2=nid();
-  await save('vendors',v1,{...s,name:'Guangzhou PackRight Co.',country:'China',currency:'CNY',leadTimeDays:35,depositPct:30,balanceDays:30,contact:'sales@packright.example',terms:'30% deposit, balance 30 days after arrival'});
-  await save('vendors',v2,{...s,name:'Laguna Contract Labs',country:'Philippines',currency:'PHP',leadTimeDays:21,depositPct:50,balanceDays:15,contact:'orders@lagunalabs.example',terms:'50% deposit, balance 15 days after delivery'});
-  await save('vendors',v3,{...s,name:'Seoul Actives Trading',country:'South Korea',currency:'USD',leadTimeDays:28,depositPct:100,balanceDays:0,contact:'export@seoulactives.example',terms:'100% before shipment'});
+  await save('vendors',v1,{...s,name:'Guangzhou PackRight Co.',country:'China',currency:'CNY',leadTimeDays:35,depositPct:30,balanceDays:30,originPort:'Guangzhou (Nansha)',productionDays:21,seaTransitDays:14,airTransitDays:4,airRatePerKg:260,seaRatePerCbm:4800,contact:'sales@packright.example',terms:'30% deposit, balance 30 days after arrival'});
+  await save('vendors',v2,{...s,name:'Laguna Contract Labs',country:'Philippines',currency:'PHP',leadTimeDays:21,depositPct:50,balanceDays:15,originPort:'Laguna (road)',productionDays:18,seaTransitDays:3,contact:'orders@lagunalabs.example',terms:'50% deposit, balance 15 days after delivery'});
+  await save('vendors',v3,{...s,name:'Seoul Actives Trading',country:'South Korea',currency:'USD',leadTimeDays:28,depositPct:100,balanceDays:0,originPort:'Busan',productionDays:14,seaTransitDays:14,airTransitDays:5,airRatePerKg:230,seaRatePerCbm:5200,contact:'export@seoulactives.example',terms:'100% before shipment'});
   await save('locations',l2,{...s,name:'Marketplace fulfillment hub',type:'marketplace'});
   const ch={};
   for(const [n,ty,st,sh] of [['Shopify','shopify','csv',.25],['Shopee','shopee','csv',.33],['Lazada','lazada','csv',.2],['TikTok Shop','tiktok','csv',.16],['Wholesale','wholesale','manual',.06]]){const id=nid();ch[n]={id,sh};await save('channels',id,{...s,name:n,type:ty,status:st})}
@@ -284,9 +519,10 @@ async function loadSample(mainLoc){
     ['RM-300','Serum base (ml)','component','buy',v3,1.6,0,0,10000,1000,{[mainLoc]:18000}],
     ['RM-301','Toner base (ml)','component','buy',v3,.35,0,0,20000,5000,{[mainLoc]:62000}]
   ];
+  const size={'FG-100':[.09,160],'FG-101':[.2,420],'FG-102':[.08,150],'FG-103':[.17,330],'FG-104':[.03,60],'CP-200':[.025,90],'CP-201':[.001,4],'CP-202':[.015,300],'CP-203':[.04,300],'RM-300':[.001,1.1],'RM-301':[.001,1.05]};
   const costMake={'FG-100':9.5+1.2+4.8+30*1.6,'FG-103':11+1.2+4.8+120*.35};
   for(const [sku,name,type,mb,vend,cost,price,lt,moq,cp,stock,bom] of prods){
-    await save('products',ids[sku],{...s,sku,name,type,makeBuy:mb,vendorId:vend||'',unitCost:cost||+(costMake[sku]||0).toFixed(2),price,leadTimeDays:lt||'',moq,casePack:cp,stock,forecastAdj:0,active:true,bom:(bom||[]).map(([c,q])=>({componentId:ids[c],qty:q}))});
+    await save('products',ids[sku],{...s,sku,name,type,makeBuy:mb,vendorId:vend||'',unitCost:cost||+(costMake[sku]||0).toFixed(2),price,leadTimeDays:lt||'',moq,casePack:cp,unitWeightKg:size[sku][0],unitVolumeCm3:size[sku][1],stock,forecastAdj:0,active:true,bom:(bom||[]).map(([c,q])=>({componentId:ids[c],qty:q}))});
   }
   const base={'FG-100':[780,820,860,900,930,980],'FG-101':[640,600,620,590,610,600],'FG-102':[420,500,560,640,720,810],'FG-103':[380,410,390,420,400,415],'FG-104':[260,230,190,160,140,120]};
   const M6=lastMonths(6);
@@ -350,19 +586,19 @@ VIEWS.products=()=>{
 VIEWS.vendors=()=>{
   const vs=sortBy(list('vendors'),v=>v.name);const st=supplierStats();
   return ph('Master data','Vendor master','Suppliers, factories and contract manufacturers. Lead times and payment terms feed planning and cash forecasts.',`<button class="btn pri" data-act="editVendor"${W()}>Add vendor</button>`)+
-  panel('Vendors',vs.length+' vendors',tbl(['Vendor','Country','Currency',['Lead time','n'],'Payment terms',['Open PO value','n'],''],vs.map(v=>{const s=st.find(x=>x.v.id===v.id);return [td(esc(v.name)+(v.contact?`<span class="sub">${esc(v.contact)}</span>`:'')),td(esc(v.country||'—')),td(esc(v.currency||'—')),td((v.leadTimeDays||'—')+'d','n'),td(`${+v.depositPct||0}% deposit, balance ${+v.balanceDays||0}d after arrival`),td(money(s?s.openVal:0),'n'),td(`<button class="btn sm" data-act="editVendor" data-id="${v.id}"${W()}>Edit</button>`,'act')]}),'No vendors yet','Add the suppliers you buy from.'));
+  panel('Vendors',vs.length+' vendors',tbl(['Vendor','Country','Lane','Currency',['Lead time','n'],'Payment terms',['Open PO value','n'],''],vs.map(v=>{const s=st.find(x=>x.v.id===v.id);return [td(esc(v.name)+(v.contact?`<span class="sub">${esc(v.contact)}</span>`:'')),td(esc(v.country||'—')),td(esc(v.originPort||'—')+`<span class="sub">${aiNum(v.productionDays)&&aiNum(v.seaTransitDays)?`${+v.productionDays}d make · ${+v.seaTransitDays}d sea${aiNum(v.airTransitDays)?' · '+(+v.airTransitDays)+'d air':''}`:'Lane times not set'}</span>`),td(esc(v.currency||'—')),td((v.leadTimeDays||'—')+'d','n'),td(`${+v.depositPct||0}% deposit, balance ${+v.balanceDays||0}d after arrival`),td(money(s?s.openVal:0),'n'),td(`<button class="btn sm" data-act="editVendor" data-id="${v.id}"${W()}>Edit</button>`,'act')]}),'No vendors yet','Add the suppliers you buy from.'));
 };
 VIEWS.locations=()=>{
   const ls=sortBy(list('locations'),l=>l.name), d=defLoc();
   return ph('Master data','Locations','Warehouses and fulfillment points where you hold stock.',`<button class="btn pri" data-act="editLocation"${W()}>Add location</button>`)+
-  panel('Locations','',tbl(['Location','Type',['SKUs stocked','n'],['Units','n'],['Value at cost','n'],''],ls.map(l=>{let u=0,val=0,n=0;list('products').forEach(p=>{const q=+(p.stock||{})[l.id]||0;if(q){n++;u+=q;val+=q*(+p.unitCost||0)}});return [td(esc(l.name)+(l.id===d?' <span class="pill acc">Default</span>':'')),td(esc(l.type||'warehouse')),td(n,'n'),td(num(u),'n'),td(money(val,0),'n'),td(`<button class="btn sm" data-act="editLocation" data-id="${l.id}"${W()}>Edit</button>`,'act')]}),'No locations','Add your warehouse to start tracking stock.'));
+  panel('Locations','',tbl(['Location','Type','Sales channel',['SKUs stocked','n'],['Units','n'],['Value at cost','n'],''],ls.map(l=>{let u=0,val=0,n=0;list('products').forEach(p=>{const q=+(p.stock||{})[l.id]||0;if(q){n++;u+=q;val+=q*(+p.unitCost||0)}});return [td(esc(l.name)+(l.id===d?' <span class="pill acc">Default</span>':'')),td(esc(l.type||'warehouse')),td(esc((CH(l.channelId)||{}).name||'—')),td(n,'n'),td(num(u),'n'),td(money(val,0),'n'),td(`<button class="btn sm" data-act="editLocation" data-id="${l.id}"${W()}>Edit</button>`,'act')]}),'No locations','Add your warehouse to start tracking stock.'));
 };
 VIEWS.channels=()=>{
   const {demCh,M6}=compute();const last=M6[5];
   const cs=sortBy(list('channels'),c=>c.name);
   const units=id=>Object.values(demCh).reduce((a,o)=>a+((o[id]&&o[id][last])||0),0);
   return ph('Master data','Sales channels','Where your demand comes from. Each channel feeds demand planning through sales orders or imported history.',`<button class="btn pri" data-act="editChannel"${W()}>Add channel</button>`)+
-  (cs.length?`<div class="cards">${cs.map(c=>`<div class="card"><h3>${esc(c.name)}</h3><div>${connPill(c.status)}</div><div class="row"><span>Units in ${monthLabel(last)}</span><b>${num(units(c.id))}</b></div><div class="row"><span>Open orders</span><b>${list('orders').filter(o=>o.channelId===c.id&&o.status==='open').length}</b></div><div><button class="btn sm" data-act="editChannel" data-id="${c.id}"${W()}>Edit</button></div></div>`).join('')}</div>`:panel('Channels','',`<div class="empty"><b>No channels yet</b>Add Shopify, Shopee, Lazada, TikTok Shop, Amazon or wholesale.</div>`))+
+  (cs.length?`<div class="cards">${cs.map(c=>`<div class="card"><h3>${esc(c.name)}</h3><div>${connPill(c.status)}</div><div class="row"><span>Units in ${monthLabel(last)}</span><b>${num(units(c.id))}</b></div><div class="row"><span>Open orders</span><b>${list('orders').filter(o=>o.channelId===c.id&&o.status==='open').length}</b></div><div class="row"><span>Stock held at channel</span><b>${(()=>{const ls=list('locations').filter(l=>l.channelId===c.id).map(l=>l.id);return ls.length?num(list('products').reduce((a,p)=>a+ls.reduce((b,id)=>b+(+(p.stock||{})[id]||0),0),0)):'—'})()}</b></div><div><button class="btn sm" data-act="editChannel" data-id="${c.id}"${W()}>Edit</button></div></div>`).join('')}</div>`:panel('Channels','',`<div class="empty"><b>No channels yet</b>Add Shopify, Shopee, Lazada, TikTok Shop, Amazon or wholesale.</div>`))+
   `<p class="note" style="margin-top:14px">Direct store connections are not switched on yet. Export orders from Shopify, Shopee or Lazada as CSV and bring them in from <a href="#integrations">Integrations & import</a>.</p>`;
 };
 function spark(series,fc){
@@ -387,9 +623,41 @@ VIEWS.demand=()=>{
 };
 VIEWS.inventory=()=>{
   const {rows}=compute();const C=cfg();
-  const rs=sortBy(rows,r=>statusRank[r.status]+r.p.sku);
-  return ph('Planning','Inventory planning',`Reorder point = daily demand × lead time + safety stock. Safety stock covers demand swings at a ${C.serviceLevel}% service level. Suggested quantity tops up to ${C.reviewDays} days beyond the reorder point, respecting MOQ and case pack.`,`<button class="btn" data-act="editSettings"${W()}>Planning rules</button><a class="btn pri" href="#purchasing">Create POs</a>`)+
-  panel('Inventory plan',rs.length+' active products',tbl(['SKU','Product',['Per day','n'],['Lead time','n'],['Safety','n'],['ROP','n'],['On hand','n'],['Allocated','n'],['Available','n'],['Incoming','n'],['Cover','n'],['Suggested','n'],'Status'],rs.map(r=>[td(esc(r.p.sku),'sku'),td(esc(r.p.name)+(r.p.type==='component'?'<span class="sub">Component · from BOMs</span>':'')),td(num(r.avgDaily,1),'n'),td(r.lt+'d','n'),td(num(r.ss),'n'),td(num(r.rop),'n'),td(num(r.oh),'n'),td(num(r.al),'n'),td(num(r.av),'n'),td(num(r.ic)+(r.eta?`<span class="sub">ETA ${esc(r.eta)}</span>`:''),'n'),td(coverTxt(r.cover),'n'),td(r.sug?'<b>'+num(r.sug)+'</b>':'—','n'),td(pill(r.status))]),'No products yet','Add products to calculate reorder points.'));
+  const ui=S.ui.inv||(S.ui.inv={view:'plan',q:'',status:''});
+  const locs=sortBy(list('locations'),l=>l.name);
+  let rs=sortBy(rows,r=>statusRank[r.status]+r.p.sku);
+  if(ui.q){const q=ui.q.toLowerCase();rs=rs.filter(r=>(r.p.sku+' '+r.p.name).toLowerCase().includes(q))}
+  if(ui.status)rs=rs.filter(r=>r.status===ui.status);
+  // While editing, keep rows where they were so a saved cell doesn't jump to another position.
+  if(ui.frozen){const ix={};ui.frozen.forEach((id,i)=>ix[id]=i);rs=sortBy(rs,r=>ix[r.p.id]??1e9)}
+  ui.lastOrder=rs.map(r=>r.p.id);
+  const ro=S.ro?' disabled title="View-only access"':'';
+  const inp=(r,i,field,val,o={})=>`<input class="cellin${o.ovr?' ovr':''}" type="number" min="0" step="any" inputmode="decimal" data-inv="${field}" data-id="${esc(r.p.id)}"${o.loc?` data-loc="${esc(o.loc)}"`:''} data-row="${i}" data-col="${esc(o.loc||field)}" data-fk="${esc(field+':'+r.p.id+':'+(o.loc||''))}" value="${esc(val??'')}" placeholder="${esc(o.ph??'')}" aria-label="${esc(o.label+' for '+r.p.sku)}"${o.title?` title="${esc(o.title)}"`:''}${ro}>`;
+  const prodCell=r=>td(esc(r.p.name)+(r.p.type==='component'?'<span class="sub">Component · from BOMs</span>':''));
+  const toggle=[['plan','Plan'],['stock','Stock by location']].map(([k,l])=>`<button class="btn sm${ui.view===k?' pri':''}" data-act="invView" data-id="${k}" aria-pressed="${ui.view===k}">${l}</button>`).join('');
+  const filters=`<div class="filters" style="margin-bottom:12px"><input type="search" id="invQ" data-fk="invQ" placeholder="Search SKU or name" value="${esc(ui.q)}" aria-label="Search products"><select id="invStatus" aria-label="Filter by status"><option value="">All statuses</option>${['Stockout','Order now','Healthy','Overstock','No demand'].map(x=>`<option${x===ui.status?' selected':''}>${x}</option>`).join('')}</select><span class="acts" style="margin-left:auto">${toggle}</span></div>`;
+  const tip=`<div class="pbody" style="padding-bottom:0"><p class="note">Edit the white cells directly. Changes save when you leave the cell; Enter moves down a row. ${ui.view==='plan'?'Leave Lead time or Safety blank to use the calculated value shown in grey. Blue outlines mark manual overrides.':'Typed quantities replace the system count at that location.'}</p></div>`;
+  let body;
+  if(ui.view==='stock'){
+    body=tbl(['SKU','Product',...locs.map(l=>[esc(l.name)+(l.channelId&&CH(l.channelId)?`<span class="sub" style="text-transform:none;letter-spacing:0">${esc(CH(l.channelId).name)} stock</span>`:''),'n']),['Total','n'],['Allocated','n'],['Available','n'],'Status'],
+      rs.map((r,i)=>[td(esc(r.p.sku),'sku'),prodCell(r),...locs.map(l=>td(inp(r,i,'stock',+(r.p.stock||{})[l.id]||0,{loc:l.id,label:l.name}),'n')),td('<b>'+num(r.oh)+'</b>','n'),td(num(r.al),'n'),td(num(r.av),'n'),td(pill(r.status))]),
+      locs.length?'No products match':'No locations yet',locs.length?'Clear the search or status filter.':'Add a location first.');
+  }else{
+    body=tbl(['SKU','Product',['Per day','n'],['Lead time','n'],['Safety','n'],['ROP','n'],['On hand','n'],['Allocated','n'],['Available','n'],['Incoming','n'],['Cover','n'],['MOQ','n'],['Case pack','n'],['Suggested','n'],'Status',''],
+      rs.map((r,i)=>{const v=V(r.p.vendorId);const ltAuto=(v&&+v.leadTimeDays)||C.defaultLeadTime;return [
+        td(esc(r.p.sku),'sku'),prodCell(r),td(num(r.avgDaily,1),'n'),
+        td(inp(r,i,'leadTimeDays',r.p.leadTimeDays,{ph:ltAuto,ovr:aiNum(r.p.leadTimeDays)&&+r.p.leadTimeDays>0,label:'Lead time days',title:'Days. Blank uses the vendor lead time ('+ltAuto+'d).'}),'n'),
+        td(inp(r,i,'ssOverride',r.p.ssOverride,{ph:r.ssAuto,ovr:aiNum(r.p.ssOverride),label:'Safety stock',title:'Units. Blank uses the calculated '+num(r.ssAuto)+'.'}),'n'),
+        td(num(r.rop),'n'),td(num(r.oh),'n'),td(num(r.al),'n'),td(num(r.av),'n'),
+        td(num(r.ic)+(r.eta?`<span class="sub">ETA ${esc(r.eta)}</span>`:''),'n'),td(coverTxt(r.cover),'n'),
+        td(inp(r,i,'moq',+r.p.moq||0,{label:'Minimum order quantity'}),'n'),
+        td(inp(r,i,'casePack',+r.p.casePack||1,{label:'Case pack'}),'n'),
+        td(r.sug?'<b>'+num(r.sug)+'</b>':'—','n'),td(pill(r.status)),
+        td(`<button class="btn sm" data-act="editPlan" data-id="${esc(r.p.id)}"${W()}>Edit</button>`,'act')]}),
+      rows.length?'No products match':'No products yet',rows.length?'Clear the search or status filter.':'Add products to calculate reorder points.');
+  }
+  return ph('Planning','Inventory planning',`Reorder point = daily demand × lead time + safety stock. Safety stock covers demand swings at a ${C.serviceLevel}% service level. Suggested quantity tops up to ${C.reviewDays} days beyond the reorder point, respecting MOQ and case pack.`,`<button class="btn" data-act="stockExport">Download stock CSV</button><button class="btn" data-act="import" data-id="stock"${W()}>Upload stock CSV</button><button class="btn" data-act="editSettings"${W()}>Planning rules</button><a class="btn pri" href="#purchasing">Create POs</a>`)+
+  filters+panel(ui.view==='stock'?'Stock by location':'Inventory plan',`${rs.length} of ${rows.length} active products${ui.view==='stock'?' · '+locs.length+' locations':''}`,tip+body);
 };
 VIEWS.mrp=()=>{
   const {R,mrp}=compute();
@@ -445,7 +713,7 @@ VIEWS.pos=()=>{
   return ph('Execution','Purchase orders','Draft, approve, email and track purchase orders. Only placed and in-transit POs count as incoming stock.',`<button class="btn pri" data-act="editPO"${W()}>New PO</button>`)+
   `<div class="filters" style="margin-bottom:12px"><label for="poStatus" class="note">Show</label><select id="poStatus">${[['active','Open (draft to partly received)'],['draft','Drafts'],['received','Received'],['cancelled','Cancelled'],['all','All']].map(([v,l])=>`<option value="${v}"${v===f?' selected':''}>${l}</option>`).join('')}</select></div>`+
   panel('Purchase orders',ps.length+' shown',tbl(['PO','Vendor','Ordered','Expected',['Lines','n'],['Value','n'],'PO status','Approval status','Send PO for approval / Email PO'],ps.map(p=>[
-    td(esc(p.number),'sku'),td(esc(vName(p.vendorId))),td(esc(p.orderDate||'—')),td(esc(p.expectedDate||'—')),
+    td(esc(p.number)+(p.shipment&&p.shipment.mode?`<span class="sub">${p.shipment.mode==='air'?'By air':'By sea'}</span>`:''),'sku'),td(esc(vName(p.vendorId))),td(esc(p.orderDate||'—')),td(esc(p.expectedDate||'—')),
     td((p.lines||[]).length,'n'),td(money(poTotal(p),0),'n'),td(pill(p.status)),td(poApprovalPill(poApproval(p))),td(poApprovalButtons(p),'act')
   ]),'No purchase orders here','Create one from Purchasing or with New PO.'));
 };
@@ -453,7 +721,7 @@ const STAGES=['Booked','Ready at origin','On the water','In the air','Arrived at
 VIEWS.inbound=()=>{
   const ps=sortBy(list('pos').filter(p=>['placed','in_transit','partial'].includes(p.status)),p=>(p.shipment&&p.shipment.eta)||p.expectedDate);
   return ph('Execution','Inbound shipments','Where each open PO is right now. A shipment is late when its ETA passes the date the vendor promised.','')+
-  panel('In the pipeline',ps.length+' shipments',tbl(['PO','Vendor','Promised','ETA','Stage','Carrier / tracking',['Value','n'],''],ps.map(p=>{const s=p.shipment||{};const eta=s.eta||p.expectedDate;const late=eta>p.expectedDate;return [td(esc(p.number),'sku'),td(esc(vName(p.vendorId))),td(esc(p.expectedDate||'—')),td(esc(eta||'—')+' '+(late?pill('Late'):pill('On time'))+`<span class="sub">${eta?(daysBetween(today(),eta)>=0?'in '+daysBetween(today(),eta)+' days':Math.abs(daysBetween(today(),eta))+' days ago'):''}</span>`),td(esc(s.stage||'Booked')),td(esc(s.carrier||'—')+(s.tracking?`<span class="sub mono">${esc(s.tracking)}</span>`:'')),td(money(poTotal(p),0),'n'),td(`<button class="btn sm" data-act="editShipment" data-id="${p.id}"${W()}>Update</button><button class="btn sm" data-act="receivePO" data-id="${p.id}"${W()}>Receive</button>`,'act')]}),'Nothing inbound','Placed POs appear here until they are received.'));
+  panel('In the pipeline',ps.length+' shipments',tbl(['PO','Vendor','Promised','ETA','Stage','Carrier / tracking',['Value','n'],''],ps.map(p=>{const s=p.shipment||{};const eta=s.eta||p.expectedDate;const late=eta>p.expectedDate;return [td(esc(p.number),'sku'),td(esc(vName(p.vendorId))),td(esc(p.expectedDate||'—')),td(esc(eta||'—')+' '+(late?pill('Late'):pill('On time'))+`<span class="sub">${eta?(daysBetween(today(),eta)>=0?'in '+daysBetween(today(),eta)+' days':Math.abs(daysBetween(today(),eta))+' days ago'):''}</span>`),td(esc(s.stage||'Booked')),td((s.mode?(s.mode==='air'?'Air · ':'Sea · '):'')+esc(s.carrier||'—')+(s.tracking?`<span class="sub mono">${esc(s.tracking)}</span>`:'')),td(money(poTotal(p),0),'n'),td(`<button class="btn sm" data-act="editShipment" data-id="${p.id}"${W()}>Update</button><button class="btn sm" data-act="receivePO" data-id="${p.id}"${W()}>Receive</button>`,'act')]}),'Nothing inbound','Placed POs appear here until they are received.'));
 };
 VIEWS.receiving=()=>{
   const ps=sortBy(list('pos').filter(p=>['placed','in_transit','partial'].includes(p.status)),p=>(p.shipment&&p.shipment.eta)||p.expectedDate);
@@ -517,8 +785,9 @@ const REPORTS={
 };
 VIEWS.reports=()=>ph('Performance','Reports','Preview a report, then download it as CSV for Excel or Google Sheets.','')+`<div class="cards">${Object.entries(REPORTS).map(([k,r])=>`<div class="card"><h3>${r.t}</h3><p class="note">${r.d}</p><div class="row"><span>Rows</span><b>${Math.max(0,r.f().length-1)}</b></div><div><button class="btn sm pri" data-act="report" data-id="${k}">Open</button></div></div>`).join('')}</div>`;
 const IMPORTS={
-  products:{t:'Products',h:'sku,name,type,make_or_buy,vendor,unit_cost,price,lead_time_days,moq,case_pack,on_hand',ex:'FG-200,Vitamin C Serum 30ml,finished,buy,Laguna Contract Labs,150,599,21,500,50,320'},
+  products:{t:'Products',h:'sku,name,type,make_or_buy,vendor,unit_cost,price,lead_time_days,moq,case_pack,on_hand,unit_weight_kg,unit_volume_cm3',ex:'FG-200,Vitamin C Serum 30ml,finished,buy,Laguna Contract Labs,150,599,21,500,50,320,0.09,180'},
   history:{t:'Monthly sales history',h:'sku,channel,month,qty',ex:'FG-200,Shopee,2026-08,240'},
+  stock:{t:'Current stock',h:'sku,location,channel,qty',ex:'FG-100,SCaaS Global Warehouse,,220\nFG-100,,Shopee,40',d:'Use location for a warehouse, channel for stock held by a sales channel, or both. Rows with neither go to the default location.'},
   orders:{t:'Sales orders',h:'order_number,date,channel,customer,sku,qty,price,status',ex:'SHP-55102,2026-10-24,Shopify,Web order,FG-200,2,599,shipped'}
 };
 VIEWS.integrations=()=>ph('System','Integrations & import','Bring data in from your store exports and spreadsheets. Matching is by SKU, channel name and vendor name; anything new is created.','')+
@@ -534,6 +803,254 @@ VIEWS.workspace=()=>{
   panel('Danger zone','',`<div class="pbody acts"><button class="btn dng" data-act="wipeAll"${W()}>Delete all data in this workspace</button></div>`);
 };
 
+/* ============================================================
+   AI INTELLIGENCE v2 — disruption, reorder and air/sea engine.
+   Rule-based and transparent. Reads Workspace settings, Vendor
+   master (country, origin port, production and transit days,
+   freight rates), Demand planning (forecast, trend) and Inventory
+   planning (available, incoming POs, safety stock).
+   No external disruption feed or language model is connected.
+   Records change only when the planner clicks "Create draft POs",
+   which feeds the normal approve → email → place workflow.
+============================================================ */
+const AI_DEF={pid:'',scope:'all',supplierDelay:10,seaDelay:0,airDays:5,seaDays:30,airPremium:0,applyToPOs:true,showAll:false};
+function aiN(v,f=0){const n=Number(v);return Number.isFinite(n)?Math.max(0,n):f}
+const aiNum=v=>v!==''&&v!=null&&Number.isFinite(+v);
+function aiUI(){const u=S.ui.ai||(S.ui.ai={});Object.keys(AI_DEF).forEach(k=>{if(u[k]===undefined)u[k]=AI_DEF[k]});return u}
+function aiInScope(v,scope){
+  if(!scope||scope==='all')return true;
+  if(scope.startsWith('c:'))return ((v&&v.country)||'').trim().toLowerCase()===scope.slice(2);
+  if(scope.startsWith('v:'))return !!v&&v.id===scope.slice(2);
+  return true;
+}
+// Splits the single planning lead time into production + transit by mode.
+function aiLane(p,v,u){
+  const flags=[];
+  const lt=+p.leadTimeDays||(v&&+v.leadTimeDays)||cfg().defaultLeadTime;
+  let sea=v&&aiNum(v.seaTransitDays)&&+v.seaTransitDays>0?+v.seaTransitDays:null;
+  let air=v&&aiNum(v.airTransitDays)&&+v.airTransitDays>0?+v.airTransitDays:null;
+  if(sea==null){sea=Math.min(aiN(u.seaDays),lt);flags.push('Sea transit assumed')}
+  if(air==null){air=aiN(u.airDays);flags.push('Air transit assumed')}
+  let prod;
+  if(v&&aiNum(v.productionDays))prod=+v.productionDays;
+  else{prod=Math.max(0,lt-sea);flags.push('Production time derived from lead time')}
+  return {lt,prod,sea,air,flags};
+}
+// Air is priced on chargeable weight (greater of actual and volumetric = cm³/6000); sea on CBM.
+function aiFreight(p,v,u){
+  const kg=+p.unitWeightKg||0, cm3=+p.unitVolumeCm3||0;
+  const ar=v?+v.airRatePerKg||0:0, sr=v?+v.seaRatePerCbm||0:0;
+  const chg=Math.max(kg,cm3/6000);
+  const air=ar&&chg?chg*ar:null, sea=sr&&cm3?cm3/1e6*sr:null;
+  if(air!=null&&sea!=null)return {premium:Math.max(0,air-sea),air,sea,chg,src:'rates',known:true};
+  const m=aiN(u.airPremium);
+  return {premium:m,air,sea,chg,src:'manual',known:m>0};
+}
+// Margin lost per unit short. Components inherit margin from the finished good they go into.
+function aiMargin(r,R){
+  if(+r.p.price>0)return {m:Math.max(0,(+r.p.price)-(+r.p.unitCost||0)),src:'own'};
+  let m=0,via='';
+  (r.usedBy||[]).forEach(x=>{const f=R[x.fg];if(!f||!(+x.qty))return;const fm=((+f.p.price||0)-(+f.p.unitCost||0))/(+x.qty);if(fm>m){m=fm;via=f.p.sku}});
+  return {m,src:m?'parent':'none',via};
+}
+// Open PO receipts by day from today, with the disruption applied to affected vendors.
+function aiArrivals(pid,u,t){
+  const out=[];
+  list('pos').forEach(po=>{
+    if(!['placed','in_transit','partial'].includes(po.status))return;
+    const s=po.shipment||{}, eta=s.eta||po.expectedDate||t;
+    let shift=0;
+    if(u.applyToPOs&&aiInScope(V(po.vendorId),u.scope)){
+      const seaShift=(s.mode==='air'||s.stage==='In the air')?0:aiN(u.seaDelay);
+      const atOrigin=po.status==='placed'&&(!s.stage||['Booked','Ready at origin'].includes(s.stage));
+      shift=(atOrigin?aiN(u.supplierDelay):0)+seaShift;
+    }
+    (po.lines||[]).forEach(l=>{
+      if(l.productId!==pid)return;
+      const q=Math.max(0,(+l.qty||0)-(+l.received||0));
+      if(q)out.push({day:Math.max(0,daysBetween(t,eta))+shift,qty:q,po:po.number,shift});
+    });
+  });
+  return sortBy(out,a=>a.day);
+}
+function aiPlanSku(r,R,u,t){
+  const p=r.p, v=V(p.vendorId), hit=aiInScope(v,u.scope), C=cfg();
+  const lane=aiLane(p,v,u), fr=aiFreight(p,v,u), mg=aiMargin(r,R);
+  const d=aiN(r.avgDaily), sd=hit?aiN(u.supplierDelay):0, sl=hit?aiN(u.seaDelay):0;
+  const seaArr=Math.ceil(lane.prod+lane.sea+sd+sl), airFaster=lane.prod+lane.air+sd<seaArr;
+  // When air is not faster than sea on this lane, nothing can land before the sea date.
+  const airArr=airFaster?Math.ceil(lane.prod+lane.air+sd):seaArr;
+  const arr=aiArrivals(p.id,u,t), byDay={};
+  arr.forEach(a=>{byDay[a.day]=(byDay[a.day]||0)+a.qty});
+  // Day-by-day projection until a new sea order could land. Unmet demand is lost, not back-ordered.
+  const av=+r.av||0, backlog=Math.max(0,-av);
+  let s=Math.max(0,av)+(byDay[0]||0), lostEarly=0, lostWindow=0, runway=null;
+  for(let day=1;day<=seaArr;day++){
+    s+=byDay[day]||0;
+    const want=d+(day===1?backlog:0);
+    if(runway==null&&s<want)runway=day-1+(want>0?s/want:0);
+    const short=Math.max(0,want-s);s=Math.max(0,s-want);
+    if(day<=airArr)lostEarly+=short;else lostWindow+=short;
+  }
+  if(runway==null)runway=d>0?seaArr+s/d:Infinity;
+  // Total order: cover demand until sea arrival plus one order cycle, plus safety stock.
+  const horizon=seaArr+aiN(C.reviewDays);
+  const incH=arr.filter(a=>a.day<=horizon).reduce((a,b)=>a+b.qty,0);
+  const need=Math.max(0,Math.ceil(d*horizon+aiN(r.ss)-av-incH));
+  const pack=Math.max(1,+p.casePack||1), moq=+p.moq||0;
+  let reorder=need>0?Math.ceil(Math.max(need,moq)/pack)*pack:0;
+  let airQty=lostWindow>0?Math.ceil(Math.ceil(lostWindow)/pack)*pack:0;
+  if(airQty>reorder)reorder=airQty;
+  const reasons=[], flags=lane.flags.slice();
+  if(fr.src==='manual')flags.push(fr.known?'Air premium entered manually':'No freight rates or unit size');
+  if(mg.src==='none')flags.push('No selling price');
+  if(!airFaster)reasons.push(`Air is not faster than sea or road on this lane (${lane.air}d vs ${lane.sea}d transit), so air is not an option.`);
+  if(mg.src==='parent')reasons.push(`${p.sku} has no selling price, so a shortage is valued at the margin of ${mg.via}, which uses it.`);
+  if(!hit&&u.scope!=='all')reasons.push('This vendor is outside the disruption scope, so normal lead times apply.');
+  let rec='No action', tone='ok', declinedAir=0;
+  const airCost=()=>airQty*fr.premium, prot=()=>Math.min(airQty,lostWindow)*mg.m;
+  if(airQty>0){
+    if(!fr.known||mg.src==='none'){
+      rec='Air + sea (verify)';tone='warn';
+      reasons.push(`Stock runs out around day ${num(runway,0)}, but sea freight lands on day ${seaArr}. About ${num(lostWindow)} units of demand fall between air arrival (day ${airArr}) and sea arrival.`);
+      reasons.push(!fr.known?'Air freight cost is unknown, so air cannot be weighed against lost margin. Add unit size and freight rates, or enter an air premium.':'Margin is unknown, so air cannot be weighed against lost sales. Add a selling price.');
+    }else if(prot()<airCost()){
+      reasons.push(`Air would add ${money(airCost(),0)} in freight but only protect ${money(prot(),0)} of margin. Accepting the gap is cheaper, so everything goes by sea.`);
+      declinedAir=airQty;airQty=0;rec='Sea only';tone='info';
+    }else{
+      rec=airQty>=reorder?'All air':'Air + sea split';tone='warn';
+      reasons.push(`Stock runs out around day ${num(runway,0)}, before sea freight lands on day ${seaArr}. Air lands on day ${airArr} and bridges ${num(airQty)} units.`);
+      reasons.push(`Air adds ${money(airCost(),0)} in freight and protects ${money(prot(),0)} of margin (${money(mg.m,2)} per unit vs ${money(fr.premium,2)} extra freight per unit).`);
+    }
+  }else if(reorder>0){
+    rec='Sea';tone='acc';
+    if(runway>=seaArr)reasons.push(Number.isFinite(runway)&&runway<horizon?`Stock and open POs last until about day ${num(runway,0)}, beyond sea arrival on day ${seaArr}, so sea freight is enough.`:`Sea arrival on day ${seaArr} comes before stock runs short.`);
+    else reasons.push('Order now by sea to restore stock as early as possible.');
+  }
+  if(lostEarly>0){
+    tone='crit';if(rec==='Sea')rec='Sea, order now';
+    reasons.push(`${num(lostEarly)} units of demand fall before ${airFaster?'even air freight':'any new order'} can land on day ${airArr}. Consider moving stock between locations, a local backup supplier, or pausing promotions.`);
+  }
+  if(reorder>0&&moq&&airQty&&reorder-airQty<moq)reasons.push(`The MOQ of ${num(moq)} applies to the combined order, so confirm the vendor accepts a split shipment.`);
+  const seaQty=reorder-airQty;
+  return {r,p,v,hit,lane,fr,mg,d,airArr,seaArr,arr,runway,lostEarly,lostWindow,need,reorder,airQty,seaQty,declinedAir,
+    airCost:airQty*fr.premium,protectedM:Math.min(airQty,lostWindow)*mg.m,rec,tone,reasons,flags,horizon,act:reorder>0||lostEarly>0};
+}
+let aiMemo={k:null,v:null};
+function aiAll(){
+  const u=aiUI(), c=compute(), k=memo.key+'|'+JSON.stringify(u);
+  if(aiMemo.k===k)return aiMemo.v;
+  const t=today();
+  const rows=c.rows.filter(r=>r.p.makeBuy!=='make'&&r.p.active!==false).map(r=>aiPlanSku(r,c.R,u,t));
+  const rank={crit:0,warn:1,info:2,acc:3,ok:4};
+  aiMemo={k,v:{u,c,rows:sortBy(rows,x=>rank[x.tone]*1e6+(Number.isFinite(x.runway)?x.runway:99999))}};
+  return aiMemo.v;
+}
+function aiTimeline(x){
+  const fin=Number.isFinite(x.runway);
+  const end=Math.max(x.seaArr,x.airArr,fin?Math.min(x.runway,x.seaArr*1.6):0,1)*1.1;
+  const W=640,H=92,L=14,R=W-14,X=dd=>L+(Math.min(Math.max(dd,0),end)/end)*(R-L);
+  const rw=fin?Math.min(x.runway,end):end, y=38;
+  const mark=(dd,lab,col,below)=>{const xx=X(dd), anc=xx<70?'start':xx>W-70?'end':'middle';return `<line x1="${xx}" x2="${xx}" y1="${y-12}" y2="${y+24}" stroke="${col}" stroke-width="2"/><text x="${xx}" y="${below?y+38:y-17}" text-anchor="${anc}" fill="${col}">${lab}</text>`};
+  return `<div class="tw"><svg class="bars aitl" viewBox="0 0 ${W} ${H}" width="100%" style="min-width:420px" role="img" aria-label="Stock runway against air and sea arrival">
+    <rect x="${L}" y="${y}" width="${R-L}" height="12" rx="3" fill="var(--soft)"/>
+    <rect x="${L}" y="${y}" width="${Math.max(0,X(rw)-L)}" height="12" rx="3" fill="var(--ok)" opacity=".75"/>
+    ${fin&&x.runway<x.seaArr?`<rect x="${X(x.runway)}" y="${y}" width="${Math.max(0,X(x.seaArr)-X(x.runway))}" height="12" fill="var(--crit)" opacity=".7"/>`:''}
+    ${x.arr.filter(a=>a.day<=end).map(a=>`<circle cx="${X(a.day)}" cy="${y+6}" r="4" fill="var(--panel)" stroke="var(--ink)" stroke-width="1.5"><title>${esc(a.po)}: ${num(a.qty)} units, day ${a.day}${a.shift?' (+'+a.shift+'d delay)':''}</title></circle>`).join('')}
+    ${mark(0,'Today','var(--muted)',true)}
+    ${x.airArr<x.seaArr?mark(x.airArr,'Air lands · day '+x.airArr,'var(--info)',false):''}
+    ${mark(x.seaArr,'Sea lands · day '+x.seaArr,'var(--accent)',true)}
+  </svg></div><div class="legend" style="margin-top:4px"><span><i style="background:var(--ok)"></i>Covered by stock + open POs</span><span><i style="background:var(--crit)"></i>Gap before sea arrives</span><span><i style="background:var(--panel);border:1.5px solid var(--ink)"></i>Open PO receipt</span></div>`;
+}
+const aiRunTxt=x=>!Number.isFinite(x.runway)?'No demand':x.runway>=x.horizon?`${x.horizon}d+`:num(x.runway,0)+'d';
+VIEWS.ai=()=>{
+  const {u,c,rows}=aiAll(), C=cfg();
+  const head=ph('Supply chain intelligence','AI Intelligence','Simulates a supplier or shipping disruption, then recommends a reorder quantity and an air/sea split for every bought product, using your workspace rules, vendor lanes, demand forecast and inventory plan.');
+  if(!rows.length)return head+panel('No bought products yet','',`<div class="pbody"><p class="note">Add products bought from vendors, plus sales history, to run the planner. Made-in-house items are planned on MRP & production; their components appear here.</p></div>`);
+  const countries={};list('vendors').forEach(v=>{const k=(v.country||'').trim();if(k)countries[k.toLowerCase()]=k});
+  const scopeOpts=[['all','All vendors'],...Object.entries(countries).sort((a,b)=>a[1]<b[1]?-1:1).map(([k,n])=>['c:'+k,'Country: '+n]),...sortBy(list('vendors'),v=>v.name).map(v=>['v:'+v.id,'Vendor: '+v.name])];
+  const numIn=(id,label,hint,step=1)=>`<label class="fld"><span>${label}</span><input type="number" min="0" step="${step}" data-ai="${id}" value="${esc(u[id])}">${hint?`<small>${hint}</small>`:''}</label>`;
+  const act=rows.filter(x=>x.act), shown=u.showAll?rows:act;
+  const sum=f=>act.reduce((a,x)=>a+f(x),0);
+  if(!rows.some(x=>x.p.id===u.pid))u.pid=(act[0]||rows[0]).p.id;
+  const x=rows.find(y=>y.p.id===u.pid);
+  const recPill=y=>`<span class="pill ${y.tone}">${esc(y.rec)}</span>`;
+
+  const scenario=panel('Disruption scenario','Enter what is happening. Everything below recalculates.',`<div class="pbody"><div class="grid2" style="gap:12px">
+    <label class="fld"><span>Who is affected</span><select data-ai="scope">${scopeOpts.map(([v,l])=>`<option value="${esc(v)}"${v===u.scope?' selected':''}>${esc(l)}</option>`).join('')}</select><small>Vendors outside the scope keep normal lead times.</small></label>
+    ${numIn('supplierDelay','Supplier delay (days)','Factory shutdown, holiday, material shortage. Delays air and sea.')}
+    ${numIn('seaDelay','Sea and port delay (days)','Port congestion, rerouting, blank sailings. Delays sea only.')}
+    <div class="fld"><span>Open purchase orders</span><label class="aichk"><input type="checkbox" class="chk" data-ai="applyToPOs"${u.applyToPOs?' checked':''}> Apply the delay to open POs from affected vendors</label><small>Not yet shipped: supplier + sea delay. On the water: sea delay only.</small></div>
+    ${numIn('airDays','Fallback air transit (days)','Used only where a vendor has no air transit days.')}
+    ${numIn('seaDays','Fallback sea transit (days)','Used only where a vendor has no sea transit days.')}
+    ${numIn('airPremium',`Fallback air premium per unit (${esc(cur())})`,'Used only where unit size or freight rates are missing.',.01)}
+  </div></div>`);
+
+  const kpis=`<div class="kpis">
+    <div class="kpi ${act.length?'warn':''}"><span>SKUs needing a decision</span><strong>${act.length}</strong><small>of ${rows.length} bought products</small></div>
+    <div class="kpi"><span>Air bridges</span><strong>${act.filter(y=>y.airQty).length}</strong><small>SKUs where flying part of the order pays off</small></div>
+    <div class="kpi"><span>Extra air freight</span><strong>${money(sum(y=>y.airCost),0)}</strong><small>Over sea, where rates are known</small></div>
+    <div class="kpi"><span>Margin protected</span><strong>${money(sum(y=>y.protectedM),0)}</strong><small>Sales saved by flying</small></div>
+    <div class="kpi ${sum(y=>y.lostEarly)?'crit':''}"><span>Unavoidable shortfall</span><strong>${money(sum(y=>y.lostEarly*y.mg.m),0)}</strong><small>Margin lost on ${act.filter(y=>y.lostEarly>0).length} SKUs before any order can land</small></div>
+  </div>`;
+
+  const recTable=panel('Recommendations',`${act.length} SKUs need action under this scenario. Days are counted from today.`,tbl(['SKU','Vendor',['Runway','n'],['Air lands','n'],['Sea lands','n'],['Reorder','n'],['By air','n'],['By sea','n'],['Extra freight','n'],'Recommendation',''],shown.map(y=>[
+      td(esc(y.p.sku)+`<span class="sub">${esc(y.p.name)}</span>`,'sku'),
+      td(esc(vName(y.p.vendorId))+`<span class="sub">${esc((y.v&&y.v.country)||'No country')}${y.hit&&u.scope!=='all'?' · affected':''}</span>`),
+      td(aiRunTxt(y),'n'),td(y.airArr<y.seaArr?'day '+y.airArr:'—','n'),td('day '+y.seaArr,'n'),
+      td(y.reorder?'<b>'+num(y.reorder)+'</b>':'—','n'),td(y.airQty?num(y.airQty):'—','n'),td(y.seaQty?num(y.seaQty):'—','n'),
+      td(y.airQty?(y.fr.known?money(y.airCost,0):'<span class="note">Unknown</span>'):'—','n'),
+      td(recPill(y)+(y.flags.length?`<span class="sub">${y.flags.length} data gap${y.flags.length>1?'s':''}</span>`:'')),
+      td(`<button class="btn sm${y.p.id===u.pid?' pri':''}" data-act="aiPick" data-id="${esc(y.p.id)}">Details</button>`,'act')
+    ]),'No action needed','Every bought product is covered under this scenario.'),
+    `<label class="aichk note"><input type="checkbox" class="chk" data-ai="showAll"${u.showAll?' checked':''}> Show all SKUs</label>`);
+
+  const detail=x?`<section class="panel" id="aiDetail"><header><div><h2>${esc(x.p.sku)} · ${esc(x.p.name)}</h2><p>${esc(vName(x.p.vendorId))} · ${esc((x.v&&x.v.originPort)||(x.v&&x.v.country)||'No origin set')}</p></div><div class="acts">${recPill(x)}<button class="btn pri" data-act="aiCreatePO" data-id="${esc(x.p.id)}"${x.reorder&&x.p.vendorId&&!S.ro?'':' disabled'}${S.ro?' title="View-only access"':''}>Create draft PO${x.airQty&&x.seaQty?'s':''}</button></div></header>
+    <div class="pbody">${aiTimeline(x)}
+    <div class="kpis" style="margin:16px 0 8px">
+      <div class="kpi"><span>Daily demand</span><strong>${num(x.d,1)}</strong><small>Forecast ${num(x.r.fcM)}/mo${x.r.p.forecastAdj?' incl. '+(x.r.p.forecastAdj>0?'+':'')+x.r.p.forecastAdj+'% adj.':''}</small></div>
+      <div class="kpi"><span>Available + incoming</span><strong>${num(x.r.av)} + ${num(x.arr.reduce((a,b)=>a+b.qty,0))}</strong><small>Safety stock ${num(x.r.ss)} at ${C.serviceLevel}%</small></div>
+      <div class="kpi"><span>Lane</span><strong>${x.lane.prod}+${x.lane.sea}d</strong><small>Production + sea · air ${x.lane.air}d</small></div>
+      <div class="kpi ${x.reorder?'warn':''}"><span>Reorder</span><strong>${num(x.reorder)}</strong><small>${num(x.airQty)} air · ${num(x.seaQty)} sea</small></div>
+    </div>
+    <h3 class="aih">Why</h3><ul class="aiul">${x.reasons.length?x.reasons.map(t=>`<li>${esc(t)}</li>`).join(''):'<li>Stock and open POs cover demand beyond the sea arrival date and one order cycle. No order needed.</li>'}</ul>
+    <h3 class="aih">How the quantity is built</h3><ul class="aiul">
+      <li>Covers ${x.horizon} days of demand (sea arrival day ${x.seaArr} + ${C.reviewDays}-day order cycle) plus ${num(x.r.ss)} safety stock, less available stock and open POs landing in that window: <b>${num(x.need)}</b> units.</li>
+      <li>Rounded up to MOQ ${num(+x.p.moq||0)} and case pack ${num(+x.p.casePack||1)}: <b>${num(x.reorder)}</b> units.</li>
+      <li>Freight per unit: ${x.fr.air!=null?'air '+money(x.fr.air,2)+' ('+num(x.fr.chg,3)+' chargeable kg)':'air unknown'} · ${x.fr.sea!=null?'sea '+money(x.fr.sea,2):'sea unknown'}${x.fr.src==='manual'&&x.fr.known?' · using fallback premium '+money(x.fr.premium,2):''}. Margin per unit short: ${x.mg.m?money(x.mg.m,2):'unknown'}.</li>
+      ${x.declinedAir?`<li>Air bridge of ${num(x.declinedAir)} units considered and rejected on cost.</li>`:''}
+    </ul>
+    ${x.flags.length?`<h3 class="aih">Data gaps</h3><p class="note">${x.flags.map(esc).join(' · ')}. Fill these in <a href="#vendors">Vendor master</a> and <a href="#products">Product master</a> for a firmer recommendation.</p>`:''}
+    <p class="note" style="margin-top:12px">Draft POs go through Send for approval → Email PO → Place, like any other PO.</p>
+    </div></section>`:'';
+
+  // Trends and issues
+  const st=supplierStats().filter(s=>s.actualLT!=null&&s.v.leadTimeDays&&s.actualLT-s.v.leadTimeDays>2);
+  const shifts=sortBy(c.rows.filter(r=>r.p.type!=='component'&&r.withData>=3&&Math.abs(r.trend)>=.2),r=>-Math.abs(r.trend)).slice(0,8);
+  const exp={};rows.forEach(y=>{const k=(y.v&&y.v.country)||'No country';const e=exp[k]=exp[k]||{n:0,stock:0,buy:0,air:0};e.n++;e.stock+=y.r.value;e.buy+=y.reorder*(+y.p.unitCost||0);e.air+=y.airQty});
+  const totStock=Object.values(exp).reduce((a,e)=>a+e.stock,0)||1;
+  const trends=`<div class="grid2">`+
+    panel('Exposure by supplier country','Where your bought products come from.',tbl(['Country',['SKUs','n'],['Stock value','n'],['Share','n'],['Reorder value','n']],sortBy(Object.entries(exp),([,e])=>-e.stock).map(([k,e])=>[td(esc(k)),td(e.n,'n'),td(money(e.stock,0),'n'),td(Math.round(e.stock/totStock*100)+'%','n'),td(e.buy?money(e.buy,0):'—','n')]),'No vendors'))+
+    panel('Demand shifts','Finished goods whose last 3 months moved 20%+ against the 3 before.',tbl(['SKU',['Trend','n'],['Forecast / mo','n']],shifts.map(r=>[td(esc(r.p.sku)+`<span class="sub">${esc(r.p.name)}</span>`,'sku'),td(`<span class="pill ${r.trend>0?'ok':'crit'}">${r.trend>0?'+':''}${Math.round(r.trend*100)}%</span>`,'n'),td(num(r.fcM),'n')]),'No big demand shifts','Demand is steady across finished goods.'))+
+    `</div>`+
+    (st.length?panel('Supplier lead-time drift','Received POs are taking longer than quoted. The planner uses quoted times until you update them.',tbl(['Vendor',['Quoted','n'],['Actual','n'],['Gap','n']],st.map(s=>[td(esc(s.v.name)),td(s.v.leadTimeDays+'d','n'),td(Math.round(s.actualLT)+'d','n'),td(`<span class="pill crit">+${Math.round(s.actualLT-s.v.leadTimeDays)}d</span>`,'n')]),''),'<a class="btn sm" href="#vendors">Update vendors</a>'):'');
+
+  const noLane=list('vendors').filter(v=>!aiNum(v.seaTransitDays)||!aiNum(v.airTransitDays)||!aiNum(v.productionDays)).length;
+  const noSize=rows.filter(y=>!(+y.p.unitVolumeCm3)).length, noRate=list('vendors').filter(v=>!(+v.airRatePerKg)||!(+v.seaRatePerCbm)).length;
+  const gaps=noLane||noSize||noRate?`<div class="banner warn"><span><b>Data gaps lower confidence.</b> ${[noLane?noLane+' vendor'+(noLane>1?'s':'')+' missing production or transit days':'',noRate?noRate+' vendor'+(noRate>1?'s':'')+' missing freight rates':'',noSize?noSize+' product'+(noSize>1?'s':'')+' missing unit size':''].filter(Boolean).join(' · ')}. Fallback values on this page fill the gaps.</span><span class="acts"><a class="btn sm" href="#vendors">Vendor master</a><a class="btn sm" href="#products">Product master</a></span></div>`:'';
+
+  return head+
+    `<div class="banner"><span><b>Scenario planner.</b> The disruption is what you enter here, not a live news or port feed. Recommendations come from transparent rules, shown in full for each SKU. Nothing changes until you create a draft PO.</span></div>`+
+    gaps+scenario+kpis+recTable+detail+trends;
+};
+document.addEventListener('change',e=>{
+  const el=e.target;if(!el.matches||!el.matches('[data-ai]'))return;
+  const u=aiUI(), k=el.dataset.ai;
+  if(el.type==='checkbox')u[k]=el.checked;
+  else if(k==='pid'||k==='scope')u[k]=el.value;
+  else u[k]=aiN(el.value);
+  render();
+});
 /* ============================================================
    MODAL / FORMS
 ============================================================ */
@@ -578,6 +1095,52 @@ const nextNum=(c,prefix)=>{let mx=1000;list(c).forEach(d=>{const m=String(d.numb
 ============================================================ */
 const A={};
 A.closeModal=closeModal;
+A.invView=d=>{const u=S.ui.inv=S.ui.inv||{};u.view=d.id;u.frozen=null;render()};
+A.stockExport=async()=>{
+  const locs=sortBy(list('locations'),l=>l.name), rows=[['sku','location','channel','qty']];
+  sortBy(list('products'),p=>p.sku).forEach(p=>locs.forEach(l=>rows.push([p.sku,l.name,(CH(l.channelId)||{}).name||'',+(p.stock||{})[l.id]||0])));
+  const csv=rows.map(r=>r.map(csvEsc).join(',')).join('\n');
+  try{await S.dl.save({filename:'stock-by-location-'+today()+'.csv',data:csv});toast('Stock CSV downloaded. Edit the qty column and upload it back.')}catch(e){toast('Download is unavailable here.')}
+};
+A.editPlan=d=>{
+  const p=P(d.id);if(!p)return;const {R}=compute();const r=R[p.id];const locs=locOpts();const v=V(p.vendorId);
+  openForm({title:'Edit plan · '+esc(p.sku),fields:[
+    {id:'leadTimeDays',label:'Lead time (days)',type:'number',value:p.leadTimeDays,placeholder:String((v&&+v.leadTimeDays)||cfg().defaultLeadTime),hint:'Blank uses the vendor lead time.'},
+    {id:'ssOverride',label:'Safety stock (units)',type:'number',value:p.ssOverride,placeholder:r?String(r.ssAuto):'',hint:'Blank uses the calculated value'+(r?' ('+num(r.ssAuto)+')':'')+'.'},
+    {id:'moq',label:'Minimum order qty',type:'number',value:p.moq},{id:'casePack',label:'Case pack',type:'number',value:p.casePack||1},
+    {id:'forecastAdj',label:'Forecast adjustment (%)',type:'number',value:p.forecastAdj||0,hint:'E.g. +25 for a sale month.'},
+    {id:'vendorId',label:'Vendor',type:'select',value:p.vendorId,options:vendOpts(true)},
+    {id:'stockHead',type:'html',html:'<p class="note"><b>Stock on hand by location.</b> These replace the system count.</p>'},
+    ...locs.map(([lid,ln])=>({id:'loc_'+lid,label:ln,type:'number',value:+(p.stock||{})[lid]||0}))
+  ],onSubmit:async x=>{
+    const bad=Object.entries(x).find(([k,val])=>k!=='vendorId'&&k!=='forecastAdj'&&val!==''&&!(+val>=0));if(bad)fail('Quantities and days must be zero or more.');
+    const stock=Object.assign({},p.stock||{});locs.forEach(([lid])=>{stock[lid]=+x['loc_'+lid]||0});
+    await upd('products',p.id,{leadTimeDays:x.leadTimeDays===''?'':+x.leadTimeDays,ssOverride:x.ssOverride===''?'':+x.ssOverride,moq:+x.moq||0,casePack:Math.max(1,+x.casePack||1),forecastAdj:+x.forecastAdj||0,vendorId:x.vendorId,stock});
+    toast(p.sku+' plan saved.');
+  }});
+};
+A.aiPick=d=>{aiUI().pid=d.id;render();const el=document.getElementById('aiDetail');if(el)el.scrollIntoView({behavior:'smooth',block:'start'})};
+A.aiCreatePO=async(d,el)=>{
+  const {rows}=aiAll();const x=rows.find(y=>y.p.id===d.id);
+  if(!x||!x.reorder){toast('Nothing to order for this SKU.');return}
+  if(!x.p.vendorId){toast('Assign a vendor to this product first.');return}
+  if(el)el.disabled=true;
+  const t=today();
+  const mk=async(mode,qty,days,unitFreight)=>{
+    const number=nextNum('pos','PO-');
+    await save('pos',nid(),{number,vendorId:x.p.vendorId,locationId:defLoc()||'',orderDate:t,expectedDate:addDays(t,days),status:'draft',approvalStatus:'not_sent',
+      freight:unitFreight!=null?Math.round(qty*unitFreight*100)/100:0,lines:[{productId:x.p.id,qty,unitCost:+x.p.unitCost||0,received:0}],
+      shipment:{stage:'Booked',carrier:'',tracking:'',eta:'',mode},aiNote:'Created from AI Intelligence: '+x.rec});
+    return number;
+  };
+  try{
+    const made=[];
+    if(x.airQty)made.push(await mk('air',x.airQty,x.airArr,x.fr.air));
+    if(x.seaQty)made.push(await mk('sea',x.seaQty,x.seaArr,x.fr.sea));
+    toast('Draft '+made.join(' (air) and ')+(x.airQty&&x.seaQty?' (sea)':'')+' created. Send for approval in Purchase orders.');
+    location.hash='pos';
+  }catch(e){if(el)el.disabled=false}
+};
 A.navtoggle=()=>$('#app').classList.toggle('navopen');
 A.switchWs=d=>{openWorkspace(d.id);location.hash='dashboard'};
 A.editProduct=d=>{
@@ -590,13 +1153,14 @@ A.editProduct=d=>{
     {id:'leadTimeDays',label:'Lead time (days)',type:'number',value:p.leadTimeDays,hint:'Leave blank to use the vendor\'s lead time. For made items, the production time.'},
     {id:'unitCost',label:'Unit cost ('+cur()+')',type:'number',value:p.unitCost},{id:'price',label:'Selling price ('+cur()+')',type:'number',value:p.price},
     {id:'moq',label:'Minimum order qty',type:'number',value:p.moq},{id:'casePack',label:'Case pack',type:'number',value:p.casePack,hint:'Orders round up to this multiple.'},
+    {id:'unitWeightKg',label:'Unit weight (kg)',type:'number',value:p.unitWeightKg,hint:'Packed weight per unit. Used for air freight.'},{id:'unitVolumeCm3',label:'Unit volume (cm³)',type:'number',value:p.unitVolumeCm3,hint:'Packed L × W × H per unit. Used for sea freight and air volumetric weight.'},
     {id:'active',label:'Status',type:'select',value:p.active===false?'no':'yes',options:[['yes','Active'],['no','Inactive (excluded from planning)']]},
     {id:'bom',label:'Bill of materials (made-in-house only)',type:'lines',rows:(p.bom||[]).map(b=>Object.assign({},b)),cols:[{key:'componentId',label:'Component',type:'select',options:prodOpts(x=>x.type==='component'&&x.id!==d.id,true)},{key:'qty',label:'Qty per unit',type:'number'}]}
   ],onDelete:d.id?async()=>{await del('products',d.id);toast('Product deleted.')}:null,
   onSubmit:async v=>{
     if(!v.sku||!v.name)fail('SKU and name are required.');
     const dup=list('products').find(x=>x.sku.toLowerCase()===v.sku.toLowerCase()&&x.id!==d.id);if(dup)fail('Another product already uses SKU '+v.sku+'.');
-    const o=Object.assign({},p,{sku:v.sku,name:v.name,type:v.type,makeBuy:v.makeBuy,vendorId:v.vendorId,leadTimeDays:v.leadTimeDays,unitCost:+v.unitCost||0,price:+v.price||0,moq:+v.moq||0,casePack:+v.casePack||1,active:v.active==='yes',bom:v.bom.filter(b=>b.componentId&&+b.qty>0).map(b=>({componentId:b.componentId,qty:+b.qty})),forecastAdj:p.forecastAdj||0,stock:p.stock||{}});
+    const o=Object.assign({},p,{sku:v.sku,name:v.name,type:v.type,makeBuy:v.makeBuy,vendorId:v.vendorId,leadTimeDays:v.leadTimeDays,unitCost:+v.unitCost||0,price:+v.price||0,moq:+v.moq||0,casePack:+v.casePack||1,unitWeightKg:v.unitWeightKg===''?'':+v.unitWeightKg,unitVolumeCm3:v.unitVolumeCm3===''?'':+v.unitVolumeCm3,active:v.active==='yes',bom:v.bom.filter(b=>b.componentId&&+b.qty>0).map(b=>({componentId:b.componentId,qty:+b.qty})),forecastAdj:p.forecastAdj||0,stock:p.stock||{}});
     await save('products',d.id||nid(),o);toast(d.id?'Product saved.':'Product added.');
   }});
 };
@@ -611,13 +1175,20 @@ A.editVendor=d=>{
   const v=d.id?V(d.id):{depositPct:30,balanceDays:30,leadTimeDays:30,currency:cur()};
   openForm({title:d.id?'Edit vendor':'Add vendor',fields:[
     {id:'name',label:'Vendor name',value:v.name,required:true,full:true},{id:'country',label:'Country',value:v.country},{id:'currency',label:'Billing currency',value:v.currency},
-    {id:'leadTimeDays',label:'Lead time (days)',type:'number',value:v.leadTimeDays,hint:'Order to arrival at your warehouse.'},{id:'contact',label:'Contact email',value:v.contact},
-    {id:'depositPct',label:'Deposit at order (%)',type:'number',value:v.depositPct},{id:'balanceDays',label:'Balance due (days after arrival)',type:'number',value:v.balanceDays}
-  ],onDelete:d.id?async()=>{await del('vendors',d.id);toast('Vendor deleted.')}:null,onSubmit:async x=>{if(!x.name)fail('Vendor name is required.');await save('vendors',d.id||nid(),Object.assign({},v,x,{leadTimeDays:+x.leadTimeDays||0,depositPct:+x.depositPct||0,balanceDays:+x.balanceDays||0}));toast('Vendor saved.')}});
+    {id:'leadTimeDays',label:'Lead time (days)',type:'number',value:v.leadTimeDays,hint:'Order to arrival at your warehouse. Left blank, it becomes production + sea transit.'},{id:'contact',label:'Contact email',value:v.contact},
+    {id:'depositPct',label:'Deposit at order (%)',type:'number',value:v.depositPct},{id:'balanceDays',label:'Balance due (days after arrival)',type:'number',value:v.balanceDays},
+    {id:'laneHead',type:'html',html:'<p class="note"><b>Shipping lane.</b> Used by AI Intelligence to compare air and sea. Rates are in '+esc(cur())+'.</p>'},
+    {id:'originPort',label:'Origin city / port',value:v.originPort,placeholder:'e.g. Guangzhou (Nansha)'},
+    {id:'productionDays',label:'Production days',type:'number',value:v.productionDays,hint:'PO placed to goods ready at origin.'},
+    {id:'seaTransitDays',label:'Sea transit days',type:'number',value:v.seaTransitDays,hint:'Ready at origin to your warehouse, incl. customs. Use road time for local vendors.'},
+    {id:'airTransitDays',label:'Air transit days',type:'number',value:v.airTransitDays,hint:'Ready at origin to your warehouse by air, incl. customs.'},
+    {id:'airRatePerKg',label:'Air rate per chargeable kg',type:'number',value:v.airRatePerKg},
+    {id:'seaRatePerCbm',label:'Sea rate per CBM',type:'number',value:v.seaRatePerCbm}
+  ],onDelete:d.id?async()=>{await del('vendors',d.id);toast('Vendor deleted.')}:null,onSubmit:async x=>{if(!x.name)fail('Vendor name is required.');const laneLT=aiNum(x.productionDays)&&aiNum(x.seaTransitDays)?(+x.productionDays)+(+x.seaTransitDays):0;await save('vendors',d.id||nid(),Object.assign({},v,x,{leadTimeDays:+x.leadTimeDays||laneLT||0,depositPct:+x.depositPct||0,balanceDays:+x.balanceDays||0}));toast('Vendor saved.')}});
 };
 A.editLocation=d=>{
   const l=d.id?L(d.id):{type:'warehouse'};
-  openForm({title:d.id?'Edit location':'Add location',fields:[{id:'name',label:'Name',value:l.name,required:true},{id:'type',label:'Type',type:'select',value:l.type,options:[['warehouse','Warehouse'],['3pl','3PL'],['marketplace','Marketplace fulfillment'],['store','Retail store']]}],
+  openForm({title:d.id?'Edit location':'Add location',fields:[{id:'name',label:'Name',value:l.name,required:true},{id:'type',label:'Type',type:'select',value:l.type,options:[['warehouse','Warehouse'],['3pl','3PL'],['marketplace','Marketplace fulfillment'],['store','Retail store']]},{id:'channelId',label:'Stock held for sales channel',type:'select',value:l.channelId||'',options:chOpts(),hint:'For stock sitting with a marketplace, e.g. Shopee or Lazada fulfillment.',full:true}],
   onDelete:d.id?async()=>{if(list('products').some(p=>+(p.stock||{})[d.id]))fail('Move or count the stock at this location to zero before deleting it.');await del('locations',d.id)}:null,
   onSubmit:async x=>{if(!x.name)fail('Name is required.');await save('locations',d.id||nid(),Object.assign({},l,x));toast('Location saved.')}});
 };
@@ -655,15 +1226,173 @@ A.shipSO=async d=>{
   await upd('orders',d.id,{status:'shipped',shippedDate:today()});toast(o.number+' shipped.')}catch(e){}
 };
 A.cancelSO=async d=>{try{await upd('orders',d.id,{status:'cancelled'});toast('Order cancelled.')}catch(e){}};
-A.createPOs=async()=>{
-  const {rows}=compute();const sel=rows.filter(r=>S.ui.sel[r.p.id]&&r.sug>0&&r.p.vendorId);
-  const by={};sel.forEach(r=>(by[r.p.vendorId]=by[r.p.vendorId]||[]).push(r));
-  const btn=document.querySelector('[data-act="createPOs"]');if(btn)btn.disabled=true;
-  try{let n=0;for(const [vid,rs] of Object.entries(by)){const v=V(vid);const num1=nextNum('pos','PO-');const lt=Math.max(...rs.map(r=>r.lt));
-    await save('pos',nid(),{number:num1,vendorId:vid,locationId:defLoc()||'',orderDate:today(),expectedDate:addDays(today(),lt||v.leadTimeDays||30),status:'draft',freight:0,lines:rs.map(r=>({productId:r.p.id,qty:r.sug,unitCost:+r.p.unitCost||0,received:0})),shipment:{stage:'Booked',carrier:'',tracking:'',eta:''}});n++}
-  S.ui.sel={};toast(n+' draft PO'+(n>1?'s':'')+' created. Review and place them in Purchase orders.');location.hash='pos'}catch(e){}
+A.createPOs = async () => {
+  const { rows } = compute();
+
+  const sel = rows.filter(r =>
+    S.ui.sel[r.p.id] &&
+    r.sug > 0 &&
+    r.p.makeBuy !== 'make' &&
+    r.p.vendorId
+  );
+
+  if (!sel.length) {
+    toast('Select purchased items with assigned vendors first.');
+    return;
+  }
+
+  const by = {};
+
+  sel.forEach(r => {
+    (by[r.p.vendorId] = by[r.p.vendorId] || []).push(r);
+  });
+
+  const btn = document.querySelector('[data-act="createPOs"]');
+  if (btn) btn.disabled = true;
+
+  try {
+    let n = 0;
+
+    for (const [vid, rs] of Object.entries(by)) {
+      const v = V(vid);
+      const num1 = nextNum('pos', 'PO-');
+      const lt = Math.max(...rs.map(r => r.lt));
+
+      await save('pos', nid(), {
+        number: num1,
+        vendorId: vid,
+        locationId: defLoc() || '',
+        orderDate: today(),
+        expectedDate: addDays(
+          today(),
+          lt || (v && v.leadTimeDays) || 30
+        ),
+        status: 'draft',
+        freight: 0,
+        lines: rs.map(r => ({
+          productId: r.p.id,
+          qty: r.sug,
+          unitCost: +r.p.unitCost || 0,
+          received: 0
+        })),
+        shipment: {
+          stage: 'Booked',
+          carrier: '',
+          tracking: '',
+          eta: ''
+        }
+      });
+
+      n++;
+    }
+
+    S.ui.sel = {};
+    toast(
+      n + ' draft PO' + (n > 1 ? 's' : '') +
+      ' created. Review and place them in Purchase orders.'
+    );
+    location.hash = 'pos';
+
+  } catch (e) {
+    console.error('PO creation failed:', e);
+  } finally {
+    if (btn) btn.disabled = false;
+  }
 };
-A.selVendor=d=>{const {rows}=compute();rows.filter(r=>r.sug>0&&(r.p.vendorId||'')===d.id).forEach(r=>S.ui.sel[r.p.id]=true);render()};
+
+A.createPOs = async () => {
+  const { rows } = compute();
+
+  const sel = rows.filter(r =>
+    S.ui.sel[r.p.id] &&
+    r.sug > 0 &&
+    r.p.makeBuy !== 'make' &&
+    r.p.vendorId
+  );
+
+  if (!sel.length) {
+    toast('Select purchased items with assigned vendors first.');
+    return;
+  }
+
+  const by = {};
+
+  sel.forEach(r => {
+    (by[r.p.vendorId] = by[r.p.vendorId] || []).push(r);
+  });
+
+  const btn = document.querySelector('[data-act="createPOs"]');
+  if (btn) btn.disabled = true;
+
+  try {
+    let n = 0;
+
+    for (const [vid, rs] of Object.entries(by)) {
+      const v = V(vid);
+      const num1 = nextNum('pos', 'PO-');
+      const lt = Math.max(...rs.map(r => r.lt));
+
+      await save('pos', nid(), {
+        number: num1,
+        vendorId: vid,
+        locationId: defLoc() || '',
+        orderDate: today(),
+        expectedDate: addDays(
+          today(),
+          lt || (v && v.leadTimeDays) || 30
+        ),
+        status: 'draft',
+        freight: 0,
+        lines: rs.map(r => ({
+          productId: r.p.id,
+          qty: r.sug,
+          unitCost: +r.p.unitCost || 0,
+          received: 0
+        })),
+        shipment: {
+          stage: 'Booked',
+          carrier: '',
+          tracking: '',
+          eta: ''
+        }
+      });
+
+      n++;
+    }
+
+    S.ui.sel = {};
+
+    toast(
+      n + ' draft PO' +
+      (n > 1 ? 's' : '') +
+      ' created.'
+    );
+
+    location.hash = 'pos';
+
+  } catch (e) {
+    console.error('PO creation failed:', e);
+    toast('Could not create purchase orders.');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+};
+
+A.selVendor = d => {
+  const { rows } = compute();
+
+  rows
+    .filter(r =>
+      r.sug > 0 &&
+      r.p.makeBuy !== 'make' &&
+      (r.p.vendorId || '') === d.id
+    )
+    .forEach(r => {
+      S.ui.sel[r.p.id] = true;
+    });
+
+  render();
+};
 function poFields(po){
   return [{id:'number',label:'PO number',value:po.number},{id:'vendorId',label:'Vendor',type:'select',value:po.vendorId,options:vendOpts(true)},
   {id:'orderDate',label:'Order date',type:'date',value:po.orderDate||today()},{id:'expectedDate',label:'Promised arrival',type:'date',value:po.expectedDate||''},
@@ -775,15 +1504,48 @@ A.report=d=>{
 };
 A.import=d=>{
   const x=IMPORTS[d.id];
-  openForm({title:'Import '+x.t.toLowerCase(),wide:true,fields:[{id:'file',type:'html',html:`<label class="fld"><span>CSV file</span><input type="file" id="impFile" accept=".csv,text/csv"></label>`},{id:'csv',label:'Or paste CSV',type:'textarea',value:'',placeholder:x.h+'\n'+x.ex,hint:'First row must be the header: '+x.h}],submitLabel:'Import',
-  onSubmit:async v=>{const rows=parseCSV(v.csv||'');if(rows.length<2)fail('Paste CSV with a header row and at least one data row.');const h=rows[0].map(s=>s.trim().toLowerCase());const recs=rows.slice(1).map(r=>{const o={};h.forEach((k,i)=>o[k]=(r[i]||'').trim());return o});const n=await IMPORTERS[d.id](recs);toast('Imported '+n+' rows.')}});
+  const extra=d.id==='stock'?[{id:'mode',label:'How to apply',type:'select',value:'set',options:[['set','Replace: quantities become the counted stock'],['add','Add: quantities are added to current stock']],full:true}]:[];
+  openForm({title:'Import '+x.t.toLowerCase(),wide:true,fields:[...(x.d?[{id:'desc',type:'html',html:`<p class="note">${esc(x.d)}</p>`}]:[]),{id:'file',type:'html',html:`<label class="fld"><span>CSV file</span><input type="file" id="impFile" accept=".csv,text/csv"></label>`},...extra,{id:'csv',label:'Or paste CSV',type:'textarea',value:'',placeholder:x.h+'\n'+x.ex,hint:'First row must be the header: '+x.h}],submitLabel:'Import',
+  onSubmit:async v=>{const rows=parseCSV(v.csv||'');if(rows.length<2)fail('Paste CSV with a header row and at least one data row.');const h=rows[0].map(s=>s.trim().toLowerCase().replace(/\s+/g,'_'));const recs=rows.slice(1).map(r=>{const o={};h.forEach((k,i)=>o[k]=(r[i]||'').trim());return o});const res=await IMPORTERS[d.id](recs,v);const n=typeof res==='number'?res:res.n,sk=(res&&res.skipped)||[];toast('Imported '+n+' rows.'+(sk.length?' Skipped '+sk.length+': '+sk.slice(0,4).join(', ')+(sk.length>4?'…':''):''))}});
   $('#impFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();rd.onload=()=>{$('#f_csv').value=rd.result};rd.readAsText(f)});
 };
 async function ensureVendor(name){if(!name)return '';const v=list('vendors').find(x=>x.name.toLowerCase()===name.toLowerCase());if(v)return v.id;const id=nid();await save('vendors',id,{name,leadTimeDays:cfg().defaultLeadTime,depositPct:0,balanceDays:30,currency:cur()});S.col.vendors[id]={id,name,leadTimeDays:cfg().defaultLeadTime};return id}
 async function ensureChannel(name){if(!name)return '';const c=list('channels').find(x=>x.name.toLowerCase()===name.toLowerCase());if(c)return c.id;const id=nid();await save('channels',id,{name,type:'other',status:'csv'});S.col.channels[id]={id,name};return id}
+async function resolveStockLocation(locName,chName){
+  locName=(locName||'').trim();chName=(chName||'').trim();
+  const chId=chName?await ensureChannel(chName):'';
+  const make=async o=>{const id=nid();await save('locations',id,o);S.col.locations[id]=Object.assign({id},o);return id};
+  if(locName){
+    const l=list('locations').find(x=>x.name.toLowerCase()===locName.toLowerCase());
+    if(!l)return make({name:locName,type:chId?'marketplace':'warehouse',channelId:chId||''});
+    if(chId&&!l.channelId)await upd('locations',l.id,{channelId:chId});
+    return l.id;
+  }
+  if(chId){
+    const l=list('locations').find(x=>x.channelId===chId)||list('locations').find(x=>x.name.toLowerCase()===(chName+' stock').toLowerCase());
+    return l?l.id:make({name:chName+' stock',type:'marketplace',channelId:chId});
+  }
+  return defLoc();
+}
 const bySku=sku=>list('products').find(p=>p.sku.toLowerCase()===String(sku).toLowerCase());
 const IMPORTERS={
-  products:async recs=>{let n=0;const loc=defLoc();for(const r of recs){if(!r.sku)continue;const ex=bySku(r.sku);const vid=await ensureVendor(r.vendor);const o=Object.assign({stock:{},bom:[],forecastAdj:0,active:true},ex||{},{sku:r.sku,name:r.name||(ex&&ex.name)||r.sku,type:(r.type||'').toLowerCase().startsWith('comp')?'component':'finished',makeBuy:(r.make_or_buy||'').toLowerCase()==='make'?'make':'buy',vendorId:vid||(ex&&ex.vendorId)||'',unitCost:+r.unit_cost||(ex&&ex.unitCost)||0,price:+r.price||(ex&&ex.price)||0,leadTimeDays:r.lead_time_days?+r.lead_time_days:((ex&&ex.leadTimeDays)||''),moq:+r.moq||0,casePack:+r.case_pack||1});if(r.on_hand!==''&&r.on_hand!=null&&loc)o.stock=Object.assign({},o.stock,{[loc]:+r.on_hand||0});const id=ex?ex.id:nid();await save('products',id,o);S.col.products[id]=Object.assign({id},o);n++}return n},
+  stock:async(recs,v)=>{
+    const mode=(v&&v.mode)==='add'?'add':'set', changes={}, seen={}, skipped=[];let n=0;
+    for(const r of recs){
+      const p=r.sku&&bySku(r.sku), q=r.qty??r.on_hand??r.quantity??'';
+      if(!p){skipped.push(r.sku?r.sku+' (unknown SKU)':'blank SKU');continue}
+      if(q===''||!Number.isFinite(+q)||+q<0){skipped.push(r.sku+' (quantity)');continue}
+      const lid=await resolveStockLocation(r.location||r.warehouse||'',r.channel||r.sales_channel||'');
+      if(!lid){skipped.push(r.sku+' (no location)');continue}
+      const st=changes[p.id]||(changes[p.id]=Object.assign({},p.stock||{})), k=p.id+'|'+lid;
+      // Replace mode: the first row for a SKU and location resets it; repeated rows (e.g. several bins) add up.
+      if(mode==='set'&&!seen[k])st[lid]=0;
+      seen[k]=1;st[lid]=(+st[lid]||0)+(+q);n++;
+    }
+    for(const [pid,stock] of Object.entries(changes))await upd('products',pid,{stock});
+    return {n,skipped};
+  },
+  products:async recs=>{let n=0;const loc=defLoc();for(const r of recs){if(!r.sku)continue;const ex=bySku(r.sku);const vid=await ensureVendor(r.vendor);const o=Object.assign({stock:{},bom:[],forecastAdj:0,active:true},ex||{},{sku:r.sku,name:r.name||(ex&&ex.name)||r.sku,type:(r.type||'').toLowerCase().startsWith('comp')?'component':'finished',makeBuy:(r.make_or_buy||'').toLowerCase()==='make'?'make':'buy',vendorId:vid||(ex&&ex.vendorId)||'',unitCost:+r.unit_cost||(ex&&ex.unitCost)||0,price:+r.price||(ex&&ex.price)||0,leadTimeDays:r.lead_time_days?+r.lead_time_days:((ex&&ex.leadTimeDays)||''),moq:+r.moq||0,casePack:+r.case_pack||1});if(aiNum(r.unit_weight_kg)&&r.unit_weight_kg!=='')o.unitWeightKg=+r.unit_weight_kg;if(aiNum(r.unit_volume_cm3)&&r.unit_volume_cm3!=='')o.unitVolumeCm3=+r.unit_volume_cm3;if(r.on_hand!==''&&r.on_hand!=null&&loc)o.stock=Object.assign({},o.stock,{[loc]:+r.on_hand||0});const id=ex?ex.id:nid();await save('products',id,o);S.col.products[id]=Object.assign({id},o);n++}return n},
   history:async recs=>{const acc={};let n=0;for(const r of recs){const p=bySku(r.sku);if(!p||!/^\d{4}-\d{2}$/.test(r.month))continue;const ch=await ensureChannel(r.channel);const k=p.id+'__'+(ch||'none');const ex=acc[k]||Object.assign({productId:p.id,channelId:ch,months:{}},S.col.history[k]||{});ex.months=Object.assign({},ex.months,{[r.month]:+r.qty||0});acc[k]=ex;n++}for(const [k,v] of Object.entries(acc))await save('history',k,v);return n},
   orders:async recs=>{const g={};let n=0;for(const r of recs){const p=bySku(r.sku);if(!p||!r.order_number)continue;const o=g[r.order_number]=g[r.order_number]||{number:r.order_number,date:/^\d{4}-\d{2}-\d{2}$/.test(r.date)?r.date:today(),channelId:await ensureChannel(r.channel),customer:r.customer||'',status:['open','shipped','cancelled'].includes((r.status||'').toLowerCase())?r.status.toLowerCase():'shipped',lines:[]};o.lines.push({productId:p.id,qty:+r.qty||0,price:+r.price||0});n++}
     for(const o of Object.values(g)){const ex=list('orders').find(x=>x.number===o.number);await save('orders',ex?ex.id:nid(),o)}return n}
@@ -812,9 +1574,34 @@ document.addEventListener('change',e=>{
   if(t.id==='poStatus'){S.ui.poStatus=t.value;render();return}
   if(t.dataset&&t.dataset.sel){if(t.checked)S.ui.sel[t.dataset.sel]=true;else delete S.ui.sel[t.dataset.sel];render();return}
 });
+document.addEventListener('change',async e=>{
+  const el=e.target;
+  if(el.id==='invQ'){const u=S.ui.inv=S.ui.inv||{};u.q=el.value.trim();u.frozen=null;render();return}
+  if(el.id==='invStatus'){const u=S.ui.inv=S.ui.inv||{};u.status=el.value;u.frozen=null;render();return}
+  if(!el.dataset||!el.dataset.inv)return;
+  const p=P(el.dataset.id);if(!p)return;
+  if(S.ui.inv&&!S.ui.inv.frozen)S.ui.inv.frozen=S.ui.inv.lastOrder;
+  const f=el.dataset.inv, raw=el.value.trim();
+  if(raw!==''&&!(Number(raw)>=0)){toast('Enter a number of zero or more.');render();return}
+  try{
+    if(f==='stock')await upd('products',p.id,{stock:{...(p.stock||{}),[el.dataset.loc]:raw===''?0:+raw}});
+    else if(f==='leadTimeDays'||f==='ssOverride')await upd('products',p.id,{[f]:raw===''?'':+raw});
+    else if(f==='moq')await upd('products',p.id,{moq:+raw||0});
+    else if(f==='casePack')await upd('products',p.id,{casePack:Math.max(1,Math.round(+raw)||1)});
+  }catch(err){}
+});
+document.addEventListener('keydown',e=>{
+  const el=e.target;
+  if(el.id==='invQ'&&e.key==='Enter'){el.blur();return}
+  if(!el.classList||!el.classList.contains('cellin')||(e.key!=='Enter'&&e.key!=='Escape'))return;
+  e.preventDefault();
+  if(e.key==='Escape'){el.value=el.defaultValue;el.blur();return}
+  const next=document.querySelector(`.cellin[data-col="${CSS.escape(el.dataset.col)}"][data-row="${(+el.dataset.row)+(e.shiftKey?-1:1)}"]`);
+  if(next){S.ui.focusFk=next.dataset.fk;next.focus();next.select()}else el.blur();
+});
 document.addEventListener('submit',e=>{if(e.target.id==='mform')submitModal(e);else if(e.target.id==='setupForm')doSetup(e)});
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&MODAL)closeModal()});
-window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(PAGES.includes(h)){page=h;render();window.scrollTo(0,0)}});
+window.addEventListener('hashchange',()=>{const h=location.hash.slice(1);if(S.ui.inv)S.ui.inv.frozen=null;if(PAGES.includes(h)){page=h;render();window.scrollTo(0,0)}});
 
 
 /* ============================================================
