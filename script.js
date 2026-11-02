@@ -2,13 +2,13 @@
 /* ============================================================
    STATE
 ============================================================ */
-const COLS=['products','vendors','locations','channels','orders','pos','returns','history','scenarios'];
+const COLS=['products','vendors','locations','channels','orders','pos','returns','history','scenarios','serialUnits'];
 const S={db:null,user:null,dl:null,uid:null,isOwner:false,mode:'loading',ws:null,wsDoc:undefined,col:{},loaded:{},workspaces:{},unsubs:[],ro:false,ui:{sel:{},soStatus:'open',poStatus:'active'},names:{}};
 COLS.forEach(c=>{S.col[c]={};});
 const DEF_CFG={serviceLevel:95,safetyDays:14,reviewDays:30,overstockDays:120,defaultLeadTime:30,carryPct:20,defaultLocation:''};
 const NAV=[
  ['',[['dashboard','Dashboard']]],
- ['Master data',[['products','Product master'],['vendors','Vendor master'],['locations','Locations'],['channels','Sales channels']]],
+ ['Master data',[['products','Product master'],['serials','Serial register'],['vendors','Vendor master'],['locations','Locations'],['channels','Sales channels']]],
  ['Planning',[['demand','Demand planning'],['inventory','Inventory planning'],['ai','AI Intelligence'],['mrp','MRP & production'],['landed','Landed cost scenarios']]],
  ['Execution',[['orders','Sales orders'],['purchasing','Purchasing'],['pos','Purchase orders'],['inbound','Inbound shipments'],['receiving','Receiving'],['returns','RMA & returns']]],
  ['Performance',[['health','Inventory health'],['cash','Cash requirements'],['risk','Revenue at risk'],['suppliers','Supplier performance'],['reports','Reports']]],
@@ -37,6 +37,10 @@ const cur=()=>(S.wsDoc&&S.wsDoc.currency)||'PHP';
 function money(v,dp){if(!Number.isFinite(+v))return '—';const a=Math.abs(+v);if(dp==null)dp=a<100&&a!==0&&a%1?2:0;try{return new Intl.NumberFormat('en',{style:'currency',currency:cur(),minimumFractionDigits:dp,maximumFractionDigits:dp}).format(v)}catch(e){return cur()+' '+num(v,dp)}}
 const list=c=>Object.values(S.col[c]);
 const P=id=>S.col.products[id]; const V=id=>S.col.vendors[id]; const L=id=>S.col.locations[id]; const CH=id=>S.col.channels[id];
+const serialUnits=pid=>list('serialUnits').filter(u=>u.productId===pid);
+const serialKey=x=>String(x||'').trim().toUpperCase();
+const parseSerials=x=>String(x||'').split(/[\n,;\t]+/).map(t=>t.trim()).filter(Boolean);
+const serialAvailable=u=>['available','reserved','quarantine'].includes(u.status);
 const pName=id=>P(id)?P(id).name:'(deleted product)';
 const vName=id=>V(id)?V(id).name:'—';
 const sortBy=(a,f)=>a.slice().sort((x,y)=>{const A=f(x),B=f(y);return A<B?-1:A>B?1:0});
@@ -574,7 +578,16 @@ const connPill=s=>({csv:'<span class="pill acc">CSV import</span>',manual:'<span
 VIEWS.products=()=>{
   const ps=sortBy(list('products'),p=>p.sku||'');
   return ph('Master data','Product master','Finished goods and the components you buy to make them. Costs and lead times here drive every plan.',`<button class="btn" data-act="adjustStock"${W()}>Stock count</button><button class="btn pri" data-act="editProduct"${W()}>Add product</button>`)+
-  panel('Products',ps.length+' items',tbl(['SKU','Name','Type','Source',['Unit cost','n'],['Price','n'],['On hand','n'],['Lead time','n'],''],ps.map(p=>{const v=V(p.vendorId);const lt=+p.leadTimeDays||(v&&v.leadTimeDays)||cfg().defaultLeadTime;return [td(esc(p.sku),'sku'),td(esc(p.name)+(p.active===false?' <span class="pill mute">Inactive</span>':'')),td(p.type==='component'?'Component':'Finished good'),td(p.makeBuy==='make'?'Made in-house <span class="sub">'+(p.bom||[]).length+' BOM lines</span>':esc(vName(p.vendorId))),td(money(p.unitCost,2),'n'),td(p.price?money(p.price,0):'—','n'),td(num(onHand(p)),'n'),td(lt+'d','n'),td(`<button class="btn sm" data-act="adjustStock" data-id="${p.id}"${W()}>Count</button><button class="btn sm" data-act="editProduct" data-id="${p.id}"${W()}>Edit</button>`,'act')]}),'No products yet','Add your first product or import a product CSV from Integrations.'));
+  panel('Products',ps.length+' items',tbl(['SKU','Name','Type','Source',['Unit cost','n'],['Price','n'],['On hand','n'],['Lead time','n'],''],ps.map(p=>{const v=V(p.vendorId);const lt=+p.leadTimeDays||(v&&v.leadTimeDays)||cfg().defaultLeadTime;return [td(esc(p.sku),'sku'),td(esc(p.name)+(p.trackingMethod==='serial'?' <span class="pill acc">Serialized</span>':'')+(p.active===false?' <span class="pill mute">Inactive</span>':'')),td(p.type==='component'?'Component':'Finished good'),td(p.makeBuy==='make'?'Made in-house <span class="sub">'+(p.bom||[]).length+' BOM lines</span>':esc(vName(p.vendorId))),td(money(p.unitCost,2),'n'),td(p.price?money(p.price,0):'—','n'),td(num(onHand(p)),'n'),td(lt+'d','n'),td(`<button class="btn sm" data-act="adjustStock" data-id="${p.id}"${W()}>Count</button><button class="btn sm" data-act="editProduct" data-id="${p.id}"${W()}>Edit</button>`,'act')]}),'No products yet','Add your first product or import a product CSV from Integrations.'));
+};
+VIEWS.serials=()=>{
+ const units=sortBy(list('serialUnits'),u=>u.serial||'');
+ const tracked=list('products').filter(p=>p.trackingMethod==='serial');
+ return ph('Master data','Serial register','Trace individual units. Register existing stock without adding stock again; receipt registration happens during PO receiving.',`<button class="btn pri" data-act="registerSerials"${W()}>Register existing units</button>`)+
+ panel('Serialized inventory',units.length+' registered units · '+tracked.length+' serialized SKUs',tbl(['Serial number','SKU','Product','Location','Status','Reference','Received',''],units.map(u=>[
+ td(esc(u.serial),'sku'),td(esc((P(u.productId)||{}).sku||'—')),td(esc(pName(u.productId))),td(esc((L(u.locationId)||{}).name||'—')),td(pill(u.status||'available')),td(esc(u.orderRef||u.reference||'—')+(u.returnId?' · RMA linked':'')),td(esc(u.receivedDate||'—')),td(`<button class="btn sm" data-act="editSerial" data-id="${esc(u.id)}"${W()}>Update</button>`,'act')
+ ]),'No serials registered','Enable Serial tracking in Product master, then register existing inventory or receive a PO.'))+
+ panel('Reconciliation','The serialized register is supplementary to SKU stock balances.',tbl(['SKU',['SKU on hand','n'],['Registered physical units','n'],['Unregistered balance','n']],tracked.map(p=>{const phys=serialUnits(p.id).filter(serialAvailable).length;const oh=onHand(p);return [td(esc(p.sku),'sku'),td(num(oh),'n'),td(num(phys),'n'),td(`<span class="${oh===phys?'':'muted'}">${num(oh-phys)}</span>`,'n')]}),'No serialized products','Set Inventory tracking to Serialized on a product.'));
 };
 VIEWS.vendors=()=>{
   const vs=sortBy(list('vendors'),v=>v.name);const st=supplierStats();
@@ -637,9 +650,9 @@ VIEWS.landed=()=>{
 };
 VIEWS.orders=()=>{
   const f=S.ui.soStatus;const os=sortBy(list('orders').filter(o=>f==='all'||o.status===f),o=>o.date||'').reverse();
-  return ph('Execution','Sales orders','Orders from every channel. Open orders reserve stock; shipping an order takes it out of the default warehouse.',`<button class="btn pri" data-act="newSO"${W()}>New sales order</button>`)+
-  `<div class="filters" style="margin-bottom:12px"><label for="soStatus" class="note">Show</label><select id="soStatus">${[['open','Open'],['shipped','Shipped'],['cancelled','Cancelled'],['all','All']].map(([v,l])=>`<option value="${v}"${v===f?' selected':''}>${l}</option>`).join('')}</select></div>`+
-  panel('Orders',os.length+' shown',tbl(['Order','Date','Channel','Customer','Items',['Units','n'],['Value','n'],'Status',''],os.slice(0,300).map(o=>{const u=(o.lines||[]).reduce((a,l)=>a+(+l.qty||0),0),v=(o.lines||[]).reduce((a,l)=>a+(+l.qty||0)*(+l.price||0),0);return [td(esc(o.number),'sku'),td(esc(o.date)),td(esc((CH(o.channelId)||{}).name||'—')),td(esc(o.customer||'—')),td((o.lines||[]).map(l=>esc((P(l.productId)||{}).sku||'?')+' ×'+l.qty).join(', ')),td(num(u),'n'),td(money(v,0),'n'),td(pill(o.status)),td(o.status==='open'?`<button class="btn sm" data-act="shipSO" data-id="${o.id}"${W()}>Ship</button><button class="btn sm" data-act="cancelSO" data-id="${o.id}"${W()}>Cancel</button>`:'','act')]}),'No orders here','Create an order or import orders from a CSV.'));
+  return ph('Execution','Sales orders','Orders from every channel. Serialized dispatch records each shipped unit. Orders marked Dispatch needs review require manual transaction recovery before retrying.',`<button class="btn pri" data-act="newSO"${W()}>New sales order</button>`)+
+  `<div class="filters" style="margin-bottom:12px"><label for="soStatus" class="note">Show</label><select id="soStatus">${[['open','Open'],['dispatching','Dispatch needs review'],['shipped','Shipped'],['cancelled','Cancelled'],['all','All']].map(([v,l])=>`<option value="${v}"${v===f?' selected':''}>${l}</option>`).join('')}</select></div>`+
+  panel('Orders',os.length+' shown',tbl(['Order','Date','Channel','Customer','Items',['Units','n'],['Value','n'],'Status',''],os.slice(0,300).map(o=>{const u=(o.lines||[]).reduce((a,l)=>a+(+l.qty||0),0),v=(o.lines||[]).reduce((a,l)=>a+(+l.qty||0)*(+l.price||0),0);return [td(esc(o.number),'sku'),td(esc(o.date)),td(esc((CH(o.channelId)||{}).name||'—')),td(esc(o.customer||'—')),td((o.lines||[]).map(l=>esc((P(l.productId)||{}).sku||'?')+' ×'+l.qty+((o.serialNumbersByProduct||{})[l.productId]?.length?' · SN: '+(o.serialNumbersByProduct[l.productId]||[]).map(esc).join(', '):'')).join(', ')),td(num(u),'n'),td(money(v,0),'n'),td(pill(o.status)),td(o.status==='open'?`<button class="btn sm" data-act="shipSO" data-id="${o.id}"${W()}>Ship</button><button class="btn sm" data-act="cancelSO" data-id="${o.id}"${W()}>Cancel</button>`:'','act')]}),'No orders here','Create an order or import orders from a CSV.'));
 };
 VIEWS.purchasing=()=>{
   const {rows}=compute();
@@ -693,8 +706,8 @@ VIEWS.receiving=()=>{
 };
 VIEWS.returns=()=>{
   const rs=sortBy(list('returns'),r=>r.date||'').reverse();
-  return ph('Execution','RMA & returns','Log customer returns, decide what happens to the goods, and put sellable units back into stock.',`<button class="btn pri" data-act="editRMA"${W()}>New return</button>`)+
-  panel('Returns',rs.length+' returns',tbl(['RMA','Date','Order','Product',['Qty','n'],'Reason','Disposition','Status',''],rs.map(r=>[td(esc(r.number),'sku'),td(esc(r.date)),td(esc(r.orderRef||'—')),td(esc(pName(r.productId))),td(num(r.qty),'n'),td(esc(r.reason||'—')),td({restock:'Restock',scrap:'Scrap',vendor:'Return to vendor'}[r.disposition]||'—'),td(pill(r.status==='received'?'received':'open')),td(r.status!=='received'?`<button class="btn sm" data-act="receiveRMA" data-id="${r.id}"${W()}>Receive</button>`:'','act')]),'No returns logged'));
+  return ph('Execution','RMA & returns','Log returns against the original dispatched serials, then restock, scrap, or return to vendor without duplicate inventory receipt.',`<button class="btn pri" data-act="editRMA"${W()}>New return</button>`)+
+  panel('Returns',rs.length+' returns',tbl(['RMA','Date','Order','Product','Serial number(s)',['Qty','n'],'Reason','Disposition','Status',''],rs.map(r=>[td(esc(r.number),'sku'),td(esc(r.date)),td(esc(r.orderRef||'—')),td(esc(pName(r.productId))),td((r.serialNumbers||[]).length?(r.serialNumbers||[]).map(esc).join(', '):'—'),td(num(r.qty),'n'),td(esc(r.reason||'—')),td({restock:'Restock',scrap:'Scrap',vendor:'Return to vendor'}[r.disposition]||'—'),td(pill(r.status==='received'?'received':'open')),td(r.status!=='received'?`<button class="btn sm" data-act="receiveRMA" data-id="${r.id}"${W()}>Receive</button>`:'','act')]),'No returns logged'));
 };
 VIEWS.health=()=>{
   const {rows}=compute();const C=cfg();
@@ -1101,6 +1114,7 @@ A.editProduct=d=>{
   openForm({title:d.id?'Edit '+esc(p.sku):'Add product',wide:true,fields:[
     {id:'sku',label:'SKU',value:p.sku,required:true},{id:'name',label:'Name',value:p.name,required:true},
     {id:'type',label:'Type',type:'select',value:p.type,options:[['finished','Finished good'],['component','Component / raw material']]},
+    {id:'trackingMethod',label:'Inventory tracking',type:'select',value:p.trackingMethod||'quantity',options:[['quantity','Quantity tracking'],['batch','Batch / lot (planned)'],['serial','Individual serial numbers']]},
     {id:'makeBuy',label:'Source',type:'select',value:p.makeBuy,options:[['buy','Bought from a vendor'],['make','Made in-house (uses a BOM)']]},
     {id:'vendorId',label:'Vendor',type:'select',value:p.vendorId,options:vendOpts(true)},
     {id:'leadTimeDays',label:'Lead time (days)',type:'number',value:p.leadTimeDays,hint:'Leave blank to use the vendor\'s lead time. For made items, the production time.'},
@@ -1108,19 +1122,60 @@ A.editProduct=d=>{
     {id:'moq',label:'Minimum order qty',type:'number',value:p.moq},{id:'casePack',label:'Case pack',type:'number',value:p.casePack,hint:'Orders round up to this multiple.'},
     {id:'active',label:'Status',type:'select',value:p.active===false?'no':'yes',options:[['yes','Active'],['no','Inactive (excluded from planning)']]},
     {id:'bom',label:'Bill of materials (made-in-house only)',type:'lines',rows:(p.bom||[]).map(b=>Object.assign({},b)),cols:[{key:'componentId',label:'Component',type:'select',options:prodOpts(x=>x.type==='component'&&x.id!==d.id,true)},{key:'qty',label:'Qty per unit',type:'number'}]}
-  ],onDelete:d.id?async()=>{await del('products',d.id);toast('Product deleted.')}:null,
+  ],onDelete:d.id?async()=>{if(serialUnits(d.id).length)fail('Cannot delete a product with serial records.');await del('products',d.id);toast('Product deleted.')}:null,
   onSubmit:async v=>{
     if(!v.sku||!v.name)fail('SKU and name are required.');
     const dup=list('products').find(x=>x.sku.toLowerCase()===v.sku.toLowerCase()&&x.id!==d.id);if(dup)fail('Another product already uses SKU '+v.sku+'.');
-    const o=Object.assign({},p,{sku:v.sku,name:v.name,type:v.type,makeBuy:v.makeBuy,vendorId:v.vendorId,leadTimeDays:v.leadTimeDays,unitCost:+v.unitCost||0,price:+v.price||0,moq:+v.moq||0,casePack:+v.casePack||1,active:v.active==='yes',bom:v.bom.filter(b=>b.componentId&&+b.qty>0).map(b=>({componentId:b.componentId,qty:+b.qty})),forecastAdj:p.forecastAdj||0,stock:p.stock||{}});
+    if(v.trackingMethod!=='serial' && serialUnits(d.id).length)fail('Cannot disable serialization while registered serial units exist.');
+    const o=Object.assign({},p,{trackingMethod:v.trackingMethod,sku:v.sku,name:v.name,type:v.type,makeBuy:v.makeBuy,vendorId:v.vendorId,leadTimeDays:v.leadTimeDays,unitCost:+v.unitCost||0,price:+v.price||0,moq:+v.moq||0,casePack:+v.casePack||1,active:v.active==='yes',bom:v.bom.filter(b=>b.componentId&&+b.qty>0).map(b=>({componentId:b.componentId,qty:+b.qty})),forecastAdj:p.forecastAdj||0,stock:p.stock||{}});
     await save('products',d.id||nid(),o);toast(d.id?'Product saved.':'Product added.');
   }});
+};
+A.registerSerials=()=>{
+ const ps=sortBy(list('products').filter(p=>p.trackingMethod==='serial'),p=>p.sku);
+ if(!ps.length){toast('Enable Serial tracking for a SKU in Product master first.');return}
+ const locs=locOpts();if(!locs.length){toast('Add a location first.');return}
+ openForm({title:'Register existing serialized stock',fields:[
+ {id:'pid',label:'Serialized product',type:'select',options:ps.map(p=>[p.id,p.sku+' · '+p.name])},
+ {id:'loc',label:'Warehouse / location',type:'select',options:locs},
+ {id:'serials',label:'Serial numbers — one per line (or comma-separated)',type:'textarea',full:true,placeholder:'SN100001\nSN100002',hint:'This registers existing stock and does not increase on-hand quantity.'},
+ {id:'reference',label:'Reference / note',value:'Opening serial registration'}
+ ],onSubmit:async v=>{
+ const p=P(v.pid),names=parseSerials(v.serials),keys=names.map(serialKey);
+ if(!p||p.trackingMethod!=='serial')fail('Select a serialized product.');
+ if(!names.length)fail('Enter at least one serial number.');
+ if(new Set(keys).size!==keys.length)fail('Duplicate serial numbers in the entry.');
+ const existing=new Set(list('serialUnits').map(u=>serialKey(u.serial)));
+ if(keys.some(k=>existing.has(k)))fail('A serial number is already registered in this workspace.');
+ const inLoc=serialUnits(p.id).filter(u=>u.locationId===v.loc&&serialAvailable(u)).length;
+ const stock=+(p.stock||{})[v.loc]||0;
+ if(names.length+inLoc>stock)fail('Only '+Math.max(0,stock-inLoc)+' unregistered on-hand units at this location. Use PO receiving for new stock.');
+ for(const name of names){const id=nid();await save('serialUnits',id,{serial:name,productId:p.id,locationId:v.loc,status:'available',reference:v.reference||'Opening registration',receivedDate:today(),createdAt:new Date().toISOString()})}
+ toast(names.length+' serial numbers registered without changing on-hand stock.');
+ }});
+};
+A.editSerial=d=>{
+ const u=S.col.serialUnits[d.id];if(!u)return;
+ openForm({title:'Serialized unit · '+esc(u.serial),fields:[
+ {id:'status',label:'Unit status',type:'select',value:u.status||'available',options:[['available','Available'],['reserved','Reserved'],['quarantine','Quarantine'],['shipped','Shipped'],['returned','Returned'],['scrapped','Scrapped']]},
+ {id:'reference',label:'Reference / order / RMA',value:u.reference||''},
+ {id:'note',label:'Movement note',value:''}
+ ],onSubmit:async v=>{
+ const from=u.status||'available';
+ if(u.orderId && v.status!==from)fail('Use the SO dispatch and RMA workflows to change the status of a dispatched serial.');
+ if(v.status!==from){
+   const before=serialAvailable(u),after=['available','reserved','quarantine'].includes(v.status);
+   // Serial status changes do not adjust SKU balances until transaction-level dispatch integration is enabled.
+   if(before!==after)fail('Changing between in-stock and out-of-stock requires a stock transaction. Use the existing Stock Count workflow and update this unit separately only after reconciliation.');
+ }
+ await upd('serialUnits',u.id,{status:v.status,reference:v.reference,updatedAt:new Date().toISOString(),lastNote:v.note||''});toast('Serial record updated.');
+ }});
 };
 A.adjustStock=d=>{
   const locs=locOpts();if(!locs.length){toast('Add a location first.');return}
   const pid=d.id||(sortBy(list('products'),p=>p.sku)[0]||{}).id;if(!pid){toast('Add a product first.');return}
   const build=id=>{const p=P(id);return [{id:'pid',label:'Product',type:'select',value:id,options:prodOpts(),full:true},...locs.map(([lid,ln])=>({id:'loc_'+lid,label:ln,type:'number',value:+(p.stock||{})[lid]||0})),{id:'note',type:'html',html:'<p class="note">Enter the counted quantity at each location. This replaces the system quantity.</p>'}]};
-  openForm({title:'Stock count',fields:build(pid),onSubmit:async v=>{const stock={};locs.forEach(([lid])=>stock[lid]=+v['loc_'+lid]||0);await upd('products',v.pid,{stock});toast('Stock updated for '+P(v.pid).sku+'.')}});
+  openForm({title:'Stock count',fields:build(pid),onSubmit:async v=>{const stock={};locs.forEach(([lid])=>stock[lid]=+v['loc_'+lid]||0);const p=P(v.pid);if(p.trackingMethod==='serial'){for(const [lid] of locs){const registered=serialUnits(p.id).filter(u=>u.locationId===lid&&serialAvailable(u)).length;if(stock[lid]<registered)fail('Count at '+L(lid).name+' cannot be below '+registered+' registered units. Reconcile serials first.')}}await upd('products',v.pid,{stock});toast('Stock updated for '+P(v.pid).sku+'.')}});
   const sel=$('#f_pid');sel.addEventListener('change',()=>{const id=sel.value;const p=P(id);locs.forEach(([lid])=>{const el=$('#f_loc_'+lid);if(el)el.value=+(p.stock||{})[lid]||0})});
 };
 A.editVendor=d=>{
@@ -1163,12 +1218,39 @@ A.newSO=(d,el,ev)=>{
   openForm({title:'New sales order',wide:true,fields:[{id:'number',label:'Order number',value:nextNum('orders','SO-')},{id:'date',label:'Date',type:'date',value:today()},{id:'channelId',label:'Channel',type:'select',options:chOpts()},{id:'customer',label:'Customer',value:''},soLinesField([{productId:'',qty:1,price:''}])],
   onSubmit:async v=>{const lines=v.lines.filter(l=>l.productId&&+l.qty>0).map(l=>({productId:l.productId,qty:+l.qty,price:l.price===''?(+(P(l.productId).price)||0):+l.price}));if(!lines.length)fail('Add at least one item with a quantity.');await save('orders',nid(),{number:v.number,date:v.date||today(),channelId:v.channelId,customer:v.customer,status:'open',lines});toast('Order '+v.number+' created.')}});
 };
-A.shipSO=async d=>{
-  const o=S.col.orders[d.id];if(!o||o.status!=='open'){toast('Only open orders can be shipped.');return}const loc=defLoc();if(!loc){toast('Add a location first.');return}
-  const short=(o.lines||[]).filter(l=>{const p=P(l.productId);return !p||(+(p.stock||{})[loc]||0)<+l.qty});
-  if(short.length){toast('Not enough stock at '+L(loc).name+' for '+short.map(l=>(P(l.productId)||{}).sku||'a deleted product').join(', ')+'. Count stock or receive a PO first.');return}
-  try{for(const l of o.lines){const p=P(l.productId);await upd('products',p.id,{stock:{...(p.stock||{}),[loc]:(+(p.stock||{})[loc]||0)-(+l.qty)}})}
-  await upd('orders',d.id,{status:'shipped',shippedDate:today()});toast(o.number+' shipped.')}catch(e){}
+// Serial dispatch is recorded against the SO and each unit before RMA is accepted.
+A.shipSO=d=>{
+ const o=S.col.orders[d.id];if(!o||o.status!=='open'){toast('Only open orders can ship.');return}
+ const loc=defLoc();if(!loc){toast('Add a dispatch location first.');return}
+ const counts={};for(const l of o.lines||[])counts[l.productId]=(counts[l.productId]||0)+(+l.qty||0);
+ const fields=[{id:'note',type:'html',html:'<p class="note">Dispatch from '+esc(L(loc)?.name||'warehouse')+'. Enter exactly one registered serial number for each serialized unit. This also records the original SO reference for later returns.</p>'}];
+ Object.entries(counts).forEach(([pid,q])=>{const p=P(pid);if(p?.trackingMethod==='serial')fields.push({id:'sn_'+pid,label:p.sku+' · '+q+' serial number(s)',type:'textarea',placeholder:'One serial number per line',hint:'Serial must be available at the dispatch warehouse.'})});
+ openForm({title:'Ship sales order '+esc(o.number),wide:true,fields,submitLabel:'Confirm dispatch',onSubmit:async v=>{
+   if(S.col.orders[o.id]?.status!=='open')fail('Sales order is no longer open.');
+   const updates=[],seen=new Set();
+   for(const [pid,q] of Object.entries(counts)){
+     const p=P(pid);if(!p)fail('An order product was removed.');
+     if(!Number.isInteger(q)||q<=0)fail('Invalid order quantity for '+p.sku);
+     if((+(p.stock||{})[loc]||0)<q)fail('Insufficient stock at '+L(loc).name+' for '+p.sku);
+     if(p.trackingMethod==='serial'){
+       const names=parseSerials(v['sn_'+pid]);if(names.length!==q)fail(p.sku+': provide exactly '+q+' serials.');
+       for(const name of names){const key=serialKey(name);if(seen.has(key))fail('Duplicate serial: '+name);seen.add(key);
+         const u=serialUnits(pid).find(x=>serialKey(x.serial)===key);
+         if(!u||u.status!=='available'||u.locationId!==loc)fail('Serial '+name+' must be available in '+L(loc).name);
+         if(u.orderId&&u.orderId!==o.id)fail('Serial '+name+' is already linked to another order.');
+         updates.push(u);
+       }
+     }
+   }
+   // The shipment record is written only after all lines and serials validate.
+   // Serial movement and quantity edits are not a cross-document DB transaction.
+   const shippedDate=today();
+   const byProduct={};for(const u of updates)(byProduct[u.productId]=byProduct[u.productId]||[]).push(u.serial);
+   await upd('orders',o.id,{status:'dispatching',serialNumbersByProduct:byProduct,shipLocationId:loc,dispatchStartedAt:new Date().toISOString()});
+   for(const u of updates)await upd('serialUnits',u.id,{status:'shipped',orderId:o.id,orderRef:o.number,shipLocationId:loc,shippedDate,reference:o.number,updatedAt:new Date().toISOString()});
+   for(const [pid,q] of Object.entries(counts)){const p=P(pid);await upd('products',pid,{stock:{...(p.stock||{}),[loc]:(+(p.stock||{})[loc]||0)-q}})}
+   await upd('orders',o.id,{status:'shipped',shippedDate});toast(o.number+' dispatched with '+updates.length+' tracked serial(s).');
+ }});
 };
 A.cancelSO=async d=>{try{await upd('orders',d.id,{status:'cancelled'});toast('Order cancelled.')}catch(e){}};
 A.createPOs = async () => {
@@ -1370,13 +1452,26 @@ A.receivePO=d=>{
   const rows=(po.lines||[]).map(l=>({sku:(P(l.productId)||{}).sku||'?',ordered:l.qty,prev:+l.received||0,now:Math.max(0,(+l.qty||0)-(+l.received||0))}));
   openForm({title:'Receive '+esc(po.number),wide:true,fields:[{id:'loc',label:'Receive into',type:'select',value:po.locationId||defLoc(),options:locOpts()},{id:'date',label:'Received on',type:'date',value:today()},
     {id:'lines',label:'Quantities',type:'lines',fixed:true,rows,cols:[{key:'sku',label:'SKU',type:'static'},{key:'ordered',label:'Ordered',type:'static'},{key:'prev',label:'Already in',type:'static'},{key:'now',label:'Receiving now',type:'number'}]},
+    ...((po.lines||[]).map((l,i)=>P(l.productId)?.trackingMethod==='serial'?{id:'serial_'+i,type:'textarea',label:'Serials for '+esc(P(l.productId).sku)+' — one per line',placeholder:'Enter one serial number for each unit received',hint:'Quantity received must match the number of distinct serials.'}:null).filter(Boolean)),
     {id:'n',type:'html',html:'<p class="note">Set a line to 0 if nothing arrived. Short shipments stay open as partly received.</p>'}],submitLabel:'Receive',
   onSubmit:async v=>{
     if(!v.loc)fail('Choose a location.');
     const lines=(po.lines||[]).map((l,i)=>Object.assign({},l,{received:(+l.received||0)+Math.max(0,+v.lines[i].now||0)}));
     if(!v.lines.some(x=>+x.now>0))fail('Enter at least one quantity received.');
     if(v.lines.some((x,i)=>(+x.now||0)<0 || (+x.now||0)>Math.max(0,(+po.lines[i].qty||0)-(+po.lines[i].received||0))))fail('Receiving quantity must be between zero and the outstanding quantity.');
+    const pending=[];const known=new Set(list('serialUnits').map(u=>serialKey(u.serial)));
+    for(let i=0;i<lines.length;i++){
+      const p=P(lines[i].productId);if(!p||p.trackingMethod!=='serial')continue;
+      const q=+v.lines[i].now||0,names=parseSerials(v['serial_'+i]),keys=names.map(serialKey);
+      if(!Number.isInteger(q))fail('Serialized receiving requires whole units for '+p.sku+'.');
+      if(names.length!==q)fail(p.sku+': enter exactly '+q+' serial numbers.');
+      for(let j=0;j<names.length;j++){
+       if(known.has(keys[j]))fail('Duplicate serial number: '+names[j]);
+       known.add(keys[j]);pending.push({serial:names[j],productId:p.id,locationId:v.loc,status:'available',reference:po.number,poId:po.id,receivedDate:v.date,createdAt:new Date().toISOString()});
+      }
+    }
     for(let i=0;i<lines.length;i++){const q=Math.max(0,+v.lines[i].now||0);if(!q)continue;const p=P(lines[i].productId);if(!p)continue;const oh=onHand(p);const cost=oh>0?((oh*(+p.unitCost||0))+q*(+lines[i].unitCost||0))/(oh+q):(+lines[i].unitCost||0);await upd('products',p.id,{stock:{...(p.stock||{}),[v.loc]:(+(p.stock||{})[v.loc]||0)+q},unitCost:Math.round(cost*100)/100})}
+    for(const u of pending)await save('serialUnits',nid(),u);
     const full=lines.every(l=>l.received>=l.qty);
     await upd('pos',d.id,{lines,status:full?'received':'partial',receivedDate:full?v.date:(po.receivedDate||''),shipment:Object.assign({},po.shipment||{},full?{stage:'Delivered'}:{})});
     toast(full?po.number+' fully received.':po.number+' partly received.');
@@ -1399,11 +1494,69 @@ A.editScenario=d=>{
   onDelete:d.id?async()=>{await del('scenarios',d.id)}:null,onSubmit:async v=>{if(!v.name)fail('Name is required.');await save('scenarios',d.id||nid(),{name:v.name,productId:v.productId,qty:+v.qty||0,options:v.options.filter(o=>o.label).map(o=>({label:o.label,vendorId:o.vendorId||'',unitPrice:+o.unitPrice||0,fx:+o.fx||1,freight:+o.freight||0,dutyPct:+o.dutyPct||0,other:+o.other||0,leadTimeDays:+o.leadTimeDays||0}))});toast('Scenario saved.')}});
 };
 A.applyOption=async d=>{const s=S.col.scenarios[d.id];const o=s.options[+d.i];const p=P(s.productId);if(!p)return;const patch={unitCost:Math.round(landed(o)*100)/100,leadTimeDays:o.leadTimeDays||''};if(o.vendorId)patch.vendorId=o.vendorId;try{await upd('products',p.id,patch);toast(p.sku+' now uses '+o.label+': '+money(patch.unitCost,2)+' landed, '+o.leadTimeDays+'d lead time.')}catch(e){}};
+// RMA serial capture is complementary to the existing quantity-only return path.
+// Unit status and SKU stock must remain consistent even when the original
+// serialized outbound dispatch was not recorded by the earlier software.
 A.editRMA=()=>{if(!list('products').length){toast('Add products first.');return}
-  openForm({title:'New return',fields:[{id:'number',label:'RMA number',value:nextNum('returns','RMA-')},{id:'date',label:'Date',type:'date',value:today()},{id:'orderRef',label:'Original order',value:''},{id:'productId',label:'Product',type:'select',options:prodOpts(p=>p.type!=='component')},{id:'qty',label:'Quantity',type:'number',value:1},{id:'reason',label:'Reason',type:'select',options:['Damaged in transit','Defective','Wrong item sent','Changed mind','Expired','Other'].map(x=>[x,x])},{id:'disposition',label:'What happens to it',type:'select',options:[['restock','Restock (sellable)'],['scrap','Scrap'],['vendor','Return to vendor']]}],
-  onSubmit:async v=>{if(!(+v.qty>0))fail('Enter a quantity.');await save('returns',nid(),Object.assign(v,{qty:+v.qty,status:'open'}));toast('Return logged.')}});
+  openForm({title:'New return',fields:[
+  {id:'number',label:'RMA number',value:nextNum('returns','RMA-')},
+  {id:'date',label:'Date',type:'date',value:today()},
+  {id:'orderRef',label:'Original sales order / reference',value:'',hint:'Serialized returns must reference an actual dispatched StockVelocity sales order.'},
+  {id:'productId',label:'Product',type:'select',options:prodOpts(p=>p.type!=='component')},
+  {id:'qty',label:'Quantity',type:'number',value:1},
+  {id:'serialNumbers',label:'Serial numbers (serialized SKUs only; one per line or comma-separated)',type:'textarea',placeholder:'SN100001\nSN100002',hint:'For serialized SKUs, each returned unit needs its own registered serial number. Stock will be reconciled at receiving.'},
+  {id:'reason',label:'Reason',type:'select',options:['Damaged in transit','Defective','Wrong item sent','Changed mind','Expired','Other'].map(x=>[x,x])},
+  {id:'disposition',label:'What happens to it',type:'select',options:[['restock','Restock (sellable)'],['scrap','Scrap'],['vendor','Return to vendor']]}
+  ],onSubmit:async v=>{
+    const p=P(v.productId);if(!p)fail('Choose a product.');
+    if(!Number.isInteger(+v.qty)||+v.qty<=0)fail('Quantity must be a positive whole number.');
+    const names=parseSerials(v.serialNumbers), keys=names.map(serialKey);
+    if(p.trackingMethod==='serial'){
+      if(names.length!==+v.qty)fail('Enter one registered serial number per returned unit.');
+      if(new Set(keys).size!==keys.length)fail('Duplicate serial numbers in this return.');
+      for(const key of keys){
+        const u=serialUnits(p.id).find(u=>serialKey(u.serial)===key);
+        if(!u)fail('Serial '+key+' was not found under this SKU. Register or reconcile the unit first.');
+        if(u.status==='scrapped')fail('Serial '+key+' has already been scrapped.');
+        const shippedSO=list('orders').find(o=>o.number===v.orderRef&&o.status==='shipped'&&o.id===u.orderId);
+        if(!shippedSO||u.status!=='shipped')fail('Serial '+u.serial+' is not recorded as shipped against '+v.orderRef+'. Complete outbound dispatch first.');
+        if(list('returns').some(r=>r.productId===p.id&&r.status==='received'&&(r.serialNumbers||[]).some(x=>serialKey(x)===key)))fail('Serial '+u.serial+' has already been returned.');
+        if(list('returns').some(r=>r.status!=='received'&&r.productId===p.id&&(r.serialNumbers||[]).some(x=>serialKey(x)===key)))fail('Serial '+key+' already has an open RMA.');
+      }
+    }else if(names.length)fail('Serial numbers are only supported for SKUs using Serial tracking.');
+    await save('returns',nid(),{number:v.number,date:v.date,orderRef:v.orderRef,productId:v.productId,qty:+v.qty,serialNumbers:names,reason:v.reason,disposition:v.disposition,status:'open'});
+    toast('Return logged with '+names.length+' serial number(s).');
+  }});
 };
-A.receiveRMA=async d=>{const r=S.col.returns[d.id];if(!r||r.status==='received')return;try{if(r.disposition==='restock'){const p=P(r.productId),loc=defLoc();if(p&&loc)await upd('products',p.id,{stock:{...(p.stock||{}),[loc]:(+(p.stock||{})[loc]||0)+(+r.qty)}})}await upd('returns',d.id,{status:'received',receivedDate:today()});toast(r.disposition==='restock'?num(r.qty)+' units restocked.':'Return received.')}catch(e){}};
+A.receiveRMA=async d=>{
+ const r=S.col.returns[d.id];if(!r||r.status==='received')return;
+ const p=P(r.productId),loc=defLoc();if(!p){toast('Product no longer exists.');return}
+ const isSer=p.trackingMethod==='serial';
+ try{
+  if(isSer){
+   const names=r.serialNumbers||[];
+   if(names.length!==+r.qty)fail('This RMA lacks the required serial numbers. Correct the return record before receiving.');
+   const units=names.map(name=>serialUnits(p.id).find(u=>serialKey(u.serial)===serialKey(name)));
+   if(units.some(u=>!u))fail('An RMA serial is missing from the register.');
+   if(units.some(u=>u.status!=='shipped'||u.orderRef!==r.orderRef))fail('All RMA serials must still be shipped on the referenced sales order.');
+   if(!loc)fail('Set a default return warehouse first.');
+   // Units still physically on hand cannot be booked again as returned stock.
+   // This protects existing data when dispatch and serial ledger were not linked.
+   const onBooks=units.filter(serialAvailable);
+   if(onBooks.length)fail('Serial '+onBooks[0].serial+' is still recorded as on-hand ('+onBooks[0].status+'). Reconcile the original outbound shipment before receiving this return to avoid duplicate inventory.');
+   if(r.disposition==='restock'){
+     await upd('products',p.id,{stock:{...(p.stock||{}),[loc]:(+(p.stock||{})[loc]||0)+units.length}});
+   }
+   for(const u of units){
+     await upd('serialUnits',u.id,{status:r.disposition==='restock'?'available':r.disposition==='scrap'?'scrapped':'returned',locationId:loc,reference:r.number,returnId:r.id,lastReturnDate:today(),lastDisposition:r.disposition,returnOrderRef:r.orderRef,updatedAt:new Date().toISOString()});
+   }
+  } else if(r.disposition==='restock'&&loc){
+    await upd('products',p.id,{stock:{...(p.stock||{}),[loc]:(+(p.stock||{})[loc]||0)+(+r.qty)}});
+  }
+  await upd('returns',d.id,{status:'received',receivedDate:today()});
+  toast(r.disposition==='restock'?num(r.qty)+' units restocked.':'Return received.');
+ }catch(e){console.error(e);toast(e.userMsg||'Return not completed: '+(e.message||'unknown error'))}
+};
 A.report=d=>{
   const r=REPORTS[d.id];const rows=r.f();const csv=rows.map(x=>x.map(csvEsc).join(',')).join('\n');
   openForm({title:r.t,wide:true,fields:[{id:'t',type:'html',html:`<div class="tw" style="max-height:55vh;overflow:auto">${tbl(rows[0].map(h=>esc(h)),rows.slice(1).map(x=>x.map(c=>td(esc(typeof c==='number'?num(c,c%1?2:0):c),typeof c==='number'?'n':''))),'No rows')}</div>`}],extraButtons:[{id:'copy',label:'Copy CSV'},...(S.dl?[{id:'dl',label:'Download CSV'}]:[])]});
